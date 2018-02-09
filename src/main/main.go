@@ -2,7 +2,7 @@ package main
 
 import (
 	"net"
-	"localip"
+	"network"
 	// ".project-gruppa/network/bcast"
 	// ".project-gruppa/network/peers"
 	// "flag"
@@ -19,7 +19,7 @@ type HelloMsg struct {
 func main() {
 	var id string
 	if id == "" {
-		localIP, err := localip.LocalIP()
+		localIP, err := network.LocalIP()
 		if err != nil {
 			fmt.Println(err)
 			localIP = "DISCONNECTED"
