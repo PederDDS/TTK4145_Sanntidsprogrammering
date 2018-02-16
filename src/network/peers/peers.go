@@ -1,6 +1,7 @@
 package network
 
 import (
+	"../conn"
 	"fmt"
 	"net"
 	"sort"
@@ -17,10 +18,11 @@ const interval = 15 * time.Millisecond
 const timeout = 50 * time.Millisecond
 
 func Transmitter(port int, id string, transmitEnable <-chan bool) {
+
 	conn := conn.DialBroadcastUDP(port)
 	addr, _ := net.ResolveUDPAddr("udp4", fmt.Sprintf("255.255.255.255:%d", port))
+
 	enable := true
-	
 	for {
 		select {
 		case enable = <-transmitEnable:
@@ -33,15 +35,19 @@ func Transmitter(port int, id string, transmitEnable <-chan bool) {
 }
 
 func Receiver(port int, peerUpdateCh chan<- PeerUpdate) {
+
 	var buf [1024]byte
 	var p PeerUpdate
 	lastSeen := make(map[string]time.Time)
+
 	conn := conn.DialBroadcastUDP(port)
 
 	for {
 		updated := false
+
 		conn.SetReadDeadline(time.Now().Add(interval))
 		n, _, _ := conn.ReadFrom(buf[0:])
+
 		id := string(buf[:n])
 
 		// Adding new connection

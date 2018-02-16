@@ -1,6 +1,7 @@
 package network
 
 import (
+	"../conn"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -8,11 +9,11 @@ import (
 	"strings"
 )
 
-
 // Encodes received values from `chans` into type-tagged JSON, then broadcasts
 // it on `port`
 func Transmitter(port int, chans ...interface{}) {
 	checkArgs(chans...)
+
 	n := 0
 	for range chans {
 		n++
@@ -20,7 +21,6 @@ func Transmitter(port int, chans ...interface{}) {
 
 	selectCases := make([]reflect.SelectCase, n)
 	typeNames := make([]string, n)
-
 	for i, ch := range chans {
 		selectCases[i] = reflect.SelectCase{
 			Dir:  reflect.SelectRecv,
@@ -31,7 +31,6 @@ func Transmitter(port int, chans ...interface{}) {
 
 	conn := conn.DialBroadcastUDP(port)
 	addr, _ := net.ResolveUDPAddr("udp4", fmt.Sprintf("255.255.255.255:%d", port))
-
 	for {
 		chosen, value, _ := reflect.Select(selectCases)
 		buf, _ := json.Marshal(value.Interface())
@@ -43,6 +42,7 @@ func Transmitter(port int, chans ...interface{}) {
 // sends the decoded value on the corresponding channel
 func Receiver(port int, chans ...interface{}) {
 	checkArgs(chans...)
+
 	var buf [1024]byte
 	conn := conn.DialBroadcastUDP(port)
 	for {
@@ -81,7 +81,9 @@ func checkArgs(chans ...interface{}) {
 	for i, ch := range chans {
 		// Must be a channel
 		if reflect.ValueOf(ch).Kind() != reflect.Chan {
-			panic(fmt.Sprintf("Argument must be a channel, got '%s' instead (arg#%d)", reflect.TypeOf(ch).String(), i+1))
+			panic(fmt.Sprintf(
+				"Argument must be a channel, got '%s' instead (arg#%d)",
+				reflect.TypeOf(ch).String(), i+1))
 		}
 
 		elemType := reflect.TypeOf(ch).Elem()
@@ -89,7 +91,9 @@ func checkArgs(chans ...interface{}) {
 		// Element type must not be repeated
 		for j, e := range elemTypes {
 			if e == elemType {
-				panic(fmt.Sprintf("All channels must have mutually different element types, arg#%d and arg#%d both have element type '%s'", j+1, i+1, e.String()))
+				panic(fmt.Sprintf(
+					"All channels must have mutually different element types, arg#%d and arg#%d both have element type '%s'",
+					j+1, i+1, e.String()))
 			}
 		}
 		elemTypes[i] = elemType
@@ -97,10 +101,14 @@ func checkArgs(chans ...interface{}) {
 		// Element type must be encodable with JSON
 		switch elemType.Kind() {
 		case reflect.Complex64, reflect.Complex128, reflect.Chan, reflect.Func, reflect.UnsafePointer:
-			panic(fmt.Sprintf("Channel element type must be supported by JSON, got '%s' instead (arg#%d)", elemType.String(), i+1))
+			panic(fmt.Sprintf(
+				"Channel element type must be supported by JSON, got '%s' instead (arg#%d)",
+				elemType.String(), i+1))
 		case reflect.Map:
 			if elemType.Key().Kind() != reflect.String {
-				panic(fmt.Sprintf("Channel element type must be supported by JSON, got '%s' instead (map keys must be 'string') (arg#%d)", elemType.String(), i+1))
+				panic(fmt.Sprintf(
+					"Channel element type must be supported by JSON, got '%s' instead (map keys must be 'string') (arg#%d)",
+					elemType.String(), i+1))
 			}
 		}
 	}
