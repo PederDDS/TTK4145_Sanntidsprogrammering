@@ -1,6 +1,6 @@
 // +build !windows
 
-package network
+package conn
 
 import (
 	"net"
