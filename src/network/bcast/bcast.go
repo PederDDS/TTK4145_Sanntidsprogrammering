@@ -53,8 +53,7 @@ func Receiver(port int, chans ...interface{}) {
 			if strings.HasPrefix(string(buf[0:n])+"{", typeName) {
 				v := reflect.New(T)
 				json.Unmarshal(buf[len(typeName):n], v.Interface())
-ansmitter(port int, chans ...interface{}) {
-	checkArgs(chans...)
+
 				reflect.Select([]reflect.SelectCase{{
 					Dir:  reflect.SelectSend,
 					Chan: reflect.ValueOf(ch),

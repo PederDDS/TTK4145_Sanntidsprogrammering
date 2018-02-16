@@ -20,7 +20,9 @@ type HelloMsg struct {
 
 func main() {
 	UDP_broadcast_IP := make(chan string)
-	port := 20012
+	IP_recieved := make(chan string)
+	send_port := 20012
+	read_port := 20013
 
 	var id string
 	if id == "" {
@@ -31,12 +33,13 @@ func main() {
 		}
 		id = fmt.Sprintf("peer-%s-%d", localIP, os.Getpid())
 		fmt.Println("My IP: ", localIP)
-		go bcast.Transmitter(port, UDP_broadcast_IP)
-		//go bcast.Receiver
+		go bcast.Transmitter(send_port, UDP_broadcast_IP)
+		go bcast.Receiver(read_port, IP_recieved)
 		for{
 			UDP_broadcast_IP <- localIP
 			time.Sleep(time.Second)
 			fmt.Println("Sent")
+			fmt.Println("Recieved: ", <- IP_recieved)
 		}
 		}
 }
