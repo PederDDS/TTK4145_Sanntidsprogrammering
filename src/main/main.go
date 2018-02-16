@@ -39,7 +39,7 @@ func main() {
 			UDP_broadcast_IP <- localIP
 			time.Sleep(time.Second)
 			fmt.Println("Sent")
-			fmt.Println("Recieved: ", <- IP_recieved)
+			fmt.Println("Recieved: ", <-IP_recieved)
 		}
 		}
 }
