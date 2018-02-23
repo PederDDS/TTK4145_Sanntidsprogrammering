@@ -32,6 +32,7 @@ const (
     NO_ORDER request         = 0
     ORDER                    = 1
     ORDER_ACCEPTED           = 2
+    ORDER_IMPOSSIBLE         = -1
 )
 type ElevRequests struct {
     requests []
