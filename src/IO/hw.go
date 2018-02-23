@@ -127,11 +127,11 @@ func pollFloors(receiver chan<- int) {
 	prev := -1
 	for {
 		time.Sleep(_pollRate)
-		v := getFloor()
-		if v != prev && v != -1 {
-			receiver <- v
+		floor := getFloor()
+		if floor != prev && floor != -1 {
+			receiver <- floor
 		}
-		prev = v
+		prev = floor
 	}
 }
 
@@ -140,13 +140,13 @@ func pollElevButtons(receiver chan<- ButtonEvent)  {
 	prev := make([][3]bool, _numFloors)
 	for {
 		time.Sleep(_pollRate)
-		for f := 0; f < _numFloors; f++ {
-			for b := ButtonType(0); b < 3; b++ {
-				v := getButton(b, f)
-				if v != prev[f][b] && v != false {
-					receiver <- ButtonEvent{f, ButtonType(b)}
+		for floor := 0; floor < _numFloors; floor++ {
+			for button := ButtonType(0); button < 3; button++ {
+				v := getButton(button, floor)
+				if v != prev[floor][button] && v != false {
+					receiver <- ButtonEvent{floor, ButtonType(button)}
 				}
-				prev[f][b] = v
+				prev[floor][button] = v
 			}
 		}
 	}
@@ -172,32 +172,3 @@ func toBool(a byte) bool {
 	}
 	return b
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
