@@ -28,6 +28,9 @@ src/IO
 	Button ButtonType
 	}
 
+	//init function
+	* initHw(addr strin, numFloors int)
+
 	// set functions
 	* setElevLights()
 	* setDoorLightValue(value bool)
