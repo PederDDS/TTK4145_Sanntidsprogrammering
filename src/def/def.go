@@ -5,7 +5,7 @@ package def
 const (
 	NUMFLOORS 			= 4
 	NUMELEVATORS 		= 3
-	NUMBUTTONS 			= 3
+	NUMBUTTON_TYPES		= 3
 
 	ELEVATOR_DEAD 		= 0
 	FLOOR_ARRIVAL 		= 1
@@ -14,7 +14,7 @@ const (
 
 	BACKUP_IP 			= 0 //to be decided
 	BACKUP_PORT 		= 0
-	MY_ID 				= 0
+	LOCAL_ID 			= 0
 
 	FIRST_FLOOR			= 0
 	SECOND_FLOOR		= 1
@@ -50,22 +50,25 @@ const (
 
 //structs
 type ButtonEvent struct {
-	Floor int
-	Button ButtonType
+	Floor 	int
+	Button 	ButtonType
 }
 
-type ElevInfo struct {
-	ID int
-	Dir MotorDirection
-	Floor int
+type Elev struct {
+	ElevID 		int
+	Dir 		MotorDirection
+	Floor 		int
+	State 		ElevState
+	Buttons 	[NUMFLOORS][NUMBUTTON_TYPES]int
+	Orders 		[NUMFLOORS][NUMBUTTON_TYPES]int
 }
 
 type MapMessage struct {
-	sendMap interface{}
-	sendEvent interface{}
+	sendMap 	interface{}
+	sendEvent 	interface{}
 }
 
-func makeMapMessage(elevmap interface{}, event interface{}) MapMessage {
+func MakeMapMessage(elevmap interface{}, event interface{}) MapMessage {
 	sendMessage := MapMessage{
 		sendMap: elevmap,
 		sendEvent: event,
