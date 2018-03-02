@@ -1,15 +1,28 @@
 package def
 
 
-
+//const parameters
 const (
-	//elevator constants
-	NumFloors = 4
-	NumElevators = 3
+	NUMFLOORS 			= 4
+	NUMELEVATORS 		= 3
+	NUMBUTTONS 			= 3
+
+	ELEVATOR_DEAD 		= 0
+	FLOOR_ARRIVAL 		= 1
+	BUTTON_PUSHED 		= 2
+	DOOR_TIMEOUT 		= 3
+
+	BACKUP_IP 			= 0 //to be decided
+	BACKUP_PORT 		= 0
+	MY_ID 				= 0
+
+	FIRST_FLOOR			= 0
+	SECOND_FLOOR		= 1
+	THIRD_FLOOR			= 2
+	FOURTH_FLOOR		= 3
 )
 
 type MotorDirection int
-
 const (
 	MD_Up   MotorDirection = 1
 	MD_Down                = -1
@@ -17,23 +30,45 @@ const (
 )
 
 type ButtonType int
-
 const (
 	BT_HallUp   ButtonType = 0
 	BT_HallDown            = 1
 	BT_Cab                 = 2
 )
 
+type ElevState int
+const (
+	S_Dead ElevState 	= 0
+	S_Init 				= 1
+	S_Idle 				= 2
+	S_Moving	 		= 3
+	S_DoorOpen  		= 4
+)
+
+
+
+
+//structs
 type ButtonEvent struct {
-	Floor  int
+	Floor int
 	Button ButtonType
 }
 
-type ElevState int
-const (
-	DEAD ElevState 		= 0
-	IDLE 				= 1
-	MOVING 				= 2
-	DOOROPEN 			= 3
-	INIT  				= 4
-)
+type ElevInfo struct {
+	ID int
+	Dir MotorDirection
+	Floor int
+}
+
+type MapMessage struct {
+	sendMap interface{}
+	sendEvent interface{}
+}
+
+func makeMapMessage(elevmap interface{}, event interface{}) MapMessage {
+	sendMessage := MapMessage{
+		sendMap: elevmap,
+		sendEvent: event,
+	}
+	return sendMessage
+}
