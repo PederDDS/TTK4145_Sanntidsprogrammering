@@ -11,17 +11,30 @@ import (
 var elevator_state def.ElevState = def.S_Dead
 var motor_direction IO.MotorDirection
 
-func Initialize(floor_detection <-chan int){
-    elevator_state = def.S_Init
-    motor_direction = IO.MD_Up
+func timer(timeout chan<- bool){
+  fmt.Println("Timer started")
+  time.Sleep(5*time.Second)
+  timeout <- true
+  fmt.Println("Timeout sent")
+}
+
+func Initialize(floor_detection <-chan int, direction IO.MotorDirection){
+  timeout := make(chan bool)
+  elevator_state = def.S_Init
+  motor_direction = direction
+  IO.SetMotorDirection(motor_direction)
+  go timer(timeout)
+  select{
+  case <- floor_detection:
+    fmt.Println("Floor detected")
+    motor_direction = IO.MD_Stop
     IO.SetMotorDirection(motor_direction)
-    select{
-    case <- floor_detection:
-      motor_direction = IO.MD_Stop
-      IO.SetMotorDirection(motor_direction)
-      elevator_state = def.S_Idle
-    }
+    elevator_state = def.S_Idle
+  case <- timeout:
+    fmt.Println("Timed out")
+    Initialize(floor_detection, - motor_direction)
   }
+}
 
 func PrintState(){
   for{
@@ -42,7 +55,7 @@ func PrintState(){
 }
 
 
-func FSM() {
+func FSM(/*Lots of channels*/) {
   switch elevator_state{
   case def.S_Dead:
     // Initialize again, but in opposite direction? -> S_Init
@@ -60,6 +73,7 @@ func FSM() {
   case def.S_DoorOpen:
     // Check for orders -> S_Moving
     // If no orders     -> S_Idle
+  }
 }
 /*
 

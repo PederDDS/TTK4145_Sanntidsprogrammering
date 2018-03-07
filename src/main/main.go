@@ -37,7 +37,7 @@ func main() {
 			go bcast.Receiver(recieve_port, recieve_chn)
 			go fsm.PrintState()
 
-			fsm.Initialize(drv_floors)
+			fsm.Initialize(drv_floors, IO.MD_Up)
 			fmt.Println("Elevator initialized")
 
 			IO.SetMotorDirection(IO.MD_Up)
