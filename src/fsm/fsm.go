@@ -27,25 +27,41 @@ func PrintState(){
   for{
     time.Sleep(time.Second)
     switch elevator_state{
-    case def.S_Init:
-      fmt.Println("State: Initializing")
-    case def.S_Moving:
-      fmt.Println("State: Moving")
-    case def.S_Idle:
-      fmt.Println("State: Idle")
-    case def.S_DoorOpen:
-      fmt.Println("State: Door Open")
     case def.S_Dead:
       fmt.Println("State: Dead")
+    case def.S_Init:
+      fmt.Println("State: Initializing")
+    case def.S_Idle:
+      fmt.Println("State: Idle")
+    case def.S_Moving:
+      fmt.Println("State: Moving")
+    case def.S_DoorOpen:
+      fmt.Println("State: Door Open")
     }
   }
 }
 
-/*
+
 func FSM() {
-
+  switch elevator_state{
+  case def.S_Dead:
+    // Initialize again, but in opposite direction? -> S_Init
+  case def.S_Init:
+    // Check for orders         -> S_Moving
+    // If order on floor        -> S_DoorOpen
+    // If no orders             -> S_Idle
+    // If unable to initialize  -> S_Dead
+  case def.S_Idle:
+    // Check for orders   -> S_Moving
+    // If order on floor  -> S_DoorOpen
+  case def.S_Moving:
+    // Check for orders on passing floors                           -> S_DoorOpen
+    // If unable to reach floor after a reasonable amount of time   -> S_Dead
+  case def.S_DoorOpen:
+    // Check for orders -> S_Moving
+    // If no orders     -> S_Idle
 }
-
+/*
 
 func ChooseDirection() int {
 
