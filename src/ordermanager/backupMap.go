@@ -2,7 +2,6 @@ package ordermanager
 
 import (
 	"../def"
-<<<<<<< HEAD
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
