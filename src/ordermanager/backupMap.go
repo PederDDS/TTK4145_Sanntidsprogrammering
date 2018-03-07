@@ -2,6 +2,7 @@ package ordermanager
 
 import (
 	"../def"
+<<<<<<< HEAD
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
@@ -120,4 +121,29 @@ func WriteBackup(backupMap ElevMap) {
 	if err != nil {
 		log.Fatal(err)
 	}
+=======
+	//"fmt"
+	"sync"
+	"log"
+)
+
+func MakeBackup(backup ElevatorMap) {
+	i := 0
+}
+
+
+func GetBackup() ElevatorMap {
+	i := 0
+}
+
+
+func Backup() {
+	newBackup := exec.Command("gnome-terminal", "-x", "-c", "sh", "en eller annen run command")
+	err := newBackup.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+
+>>>>>>> ede7312dae1a86fcbf24ba6c996d13d32cc82879
 }
