@@ -1,10 +1,10 @@
 package ordermanager
 
 import (
-	"../def"
+	//"../def"
 	//"fmt"
-	"sync"
-	"log"
+	//"sync"
+	//"log"
 )
 
 func MakeBackup(backup ElevatorMap) {

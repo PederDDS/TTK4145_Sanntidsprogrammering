@@ -27,7 +27,7 @@ func main() {
 	    drv_stop    := make(chan bool)
 			bcast_chn		:= make(chan IO.ButtonEvent)
 			recieve_chn	:= make(chan string)
-			fsm_chn			:= make(chan bool)
+			//fsm_chn			:= make(chan bool)
 
 	    go IO.PollButtons(drv_buttons)
 	    go IO.PollFloorSensor(drv_floors)
@@ -36,8 +36,7 @@ func main() {
 			go bcast.Transmitter(send_port, bcast_chn)
 			go bcast.Receiver(recieve_port, recieve_chn)
 
-			go fsm.Initialize(drv_floors, fsm_chn)
-			<- fsm_chn
+			fsm.Initialize(drv_floors)
 			fmt.Println("Elevator initialized")
 
 	    for {
