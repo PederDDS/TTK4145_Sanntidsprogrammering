@@ -2,28 +2,44 @@ package fsm
 
 import (
   "fmt"
-  //"time"
+  "time"
   "../def"
   //"../ordermanager"
   "../IO"
 )
 
-var elevator_state def.ElevState
+var elevator_state def.ElevState = def.S_Dead
 var motor_direction IO.MotorDirection
 
 func Initialize(floor_detection <-chan int){
-    fmt.Println("Initializing")
     elevator_state = def.S_Init
     motor_direction = IO.MD_Up
     IO.SetMotorDirection(motor_direction)
     select{
     case <- floor_detection:
-      fmt.Println("Noe skjedde")
       motor_direction = IO.MD_Stop
       IO.SetMotorDirection(motor_direction)
       elevator_state = def.S_Idle
     }
   }
+
+func PrintState(){
+  for{
+    time.Sleep(time.Second)
+    switch elevator_state{
+    case def.S_Init:
+      fmt.Println("State: Initializing")
+    case def.S_Moving:
+      fmt.Println("State: Moving")
+    case def.S_Idle:
+      fmt.Println("State: Idle")
+    case def.S_DoorOpen:
+      fmt.Println("State: Door Open")
+    case def.S_Dead:
+      fmt.Println("State: Dead")
+    }
+  }
+}
 
 /*
 func FSM() {

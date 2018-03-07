@@ -35,9 +35,12 @@ func main() {
 	    go IO.PollStopButton(drv_stop)
 			go bcast.Transmitter(send_port, bcast_chn)
 			go bcast.Receiver(recieve_port, recieve_chn)
+			go fsm.PrintState()
 
 			fsm.Initialize(drv_floors)
 			fmt.Println("Elevator initialized")
+
+			IO.SetMotorDirection(IO.MD_Up)
 
 	    for {
 	        select {
