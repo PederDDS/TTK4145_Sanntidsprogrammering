@@ -16,10 +16,6 @@ const (
 	BACKUP_PORT 		= 0
 	LOCAL_ID 			= 0
 
-	FIRST_FLOOR			= 0
-	SECOND_FLOOR		= 1
-	THIRD_FLOOR			= 2
-	FOURTH_FLOOR		= 3
 )
 
 type MotorDirection int
@@ -56,7 +52,7 @@ type ButtonEvent struct {
 
 type Elev struct {
 	ElevID 		int
-	Dir 		MotorDirection
+	Dir 		  MotorDirection
 	Floor 		int
 	State 		ElevState
 	Buttons 	[NUMFLOORS][NUMBUTTON_TYPES]int

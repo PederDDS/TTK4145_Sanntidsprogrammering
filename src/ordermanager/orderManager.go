@@ -2,8 +2,8 @@ package ordermanager
 
 import (
     "fmt"
-    "../network"
     "../def/"
+    "sync"
 )
 
 var mapMtx sync.Mutex
@@ -41,19 +41,138 @@ func InitElevMap() {
     mapMtx.Lock()
     localElevMap := new(ElevatorMap)
 
-    makeBackup(*localElevMap)
+    if backup {
+      *localElevMap = GetBackup()
+    } else {
+      *localElevMap = MakeEmptyElevMap()
+    }
+
+    MakeBackup(*localElevMap)
     mapMtx.Unlock()
 }
 
 
-func UpdateElevMap(newMap ElevatorMap, userID int) (ElevatorMap, bool){
+func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool){
     currentMap := GetElevMap()
+    allChangesMade = false
+
+    //update direction
+    if newMap[def.LOCAL_ID].Dir != currentMap[def.LOCAL_ID].Dir {
+      currentMap[def.LOCAL_ID].Dir = newMap[def.LOCAL_ID].Dir
+      allChangesMade = true
+    }
+
+    //update floor
+    if newMap[def.LOCAL_ID].Floor != currentMap[def.LOCAL_ID].Floor {
+      currentMap[def.LOCAL_ID].Floor = newMap[def.LOCAL_ID].Floor
+      allChangesMade = true
+    }
+
+    //update state
+    if newMap[def.LOCAL_ID].State != currentMap[def.LOCAL_ID].State {
+      currentMap[def.LOCAL_ID].State = newMap[def.LOCAL_ID].State
+      allChangesMade = true
+    }
+
+    //update buttons and orders
+    for elev := 0; elev < def.NUMELEVATORS; elev++ {
+      if currentMap[def.LOCAL_ID].State != def.S_Dead && newMap[def.LOCAL_ID].State != def.S_Dead {
+
+        for floor := 0; floor < def.NUMFLOORS; floor++ {
+          for button := 0; button < def.NUMBUTTON_TYPES, button++ {
+
+            //set buttons to 0 or 2 depending on if there is an order or not
+            //if there is an accepted order, then buttons should be set to 2
+            if newMap[elev].Orders[floor][button] == 1 && currentMap[elev].Buttons[floor][button] != 2 {
+              if button != def.BT_Cab {
+                for e := 0; e < def.NUMELEVATORS; e++ {
+                  currentMap[e].Buttons[floor][button] = 2
+                }
+                allChangesMade = true
+              }
+            //if there was an order, but it has been completed, buttons should be set to 0 again
+            } else if newMap[elev].Orders[floor][button] == 0 && currentMap[elev].Orders[floor][button] == 1 {
+              if button != def.BT_Cab {
+                for e := 0; e < def.NUMELEVATORS; e++ {
+                  currentMap[e].Buttons[floor][button] = 0
+                }
+                allChangesMade = true
+              }
+            }
+
+            //set all values to 1
+            if newMap[elev].Buttons[floor][button] == 1 && currentMap[elev].Buttons[floor][button] == 0 {
+              if button != def.BT_Cab {
+                for e := 0; e < def.NUMELEVATORS; e++ {
+                  currentMap[elev].Buttons[floor][button] = newMap[elev].Buttons[floor][button]
+                }
+                allChangesMade = true
+              } else if elev == def.LOCAL_ID {
+                currentMap[elev].Buttons[floor][def.BT_Cab] = newMap[elev].Buttons[floor][def.BT_Cab]
+                allChangesMade = true
+              }
+
+            } else if newMap[elev].Buttons[floor][button] == 2 && currentMap[elev].Buttons[floor][button] != 2 {
+              if button != def.BT_Cab {
+                for e := 0; e < def.NUMELEVATORS; e++ {
+                  currentMap[elev].Buttons[floor][button] = newMap[elev].Buttons[floor][button]
+                }
+                allChangesMade = true
+              } else if elev == def.LOCAL_ID {
+                currentMap[elev].Buttons[floor][def.BT_Cab] = newMap[elev].Buttons[floor][def.BT_Cab]
+                allChangesMade = true
+              }
+
+            } else if newMap[elev].Buttons[floor][button] == 0 && currentMap[elev].Buttons[floor][button] == 2 {
+              if button != def.BT_Cab {
+                for e := 0; e < def.NUMELEVATORS; e++ {
+                  currentMap[elev].Buttons[floor][button] = newMap[elev].Buttons[floor][button]
+                }
+                allChangesMade = true
+              } else if elev == def.LOCAL_ID {
+                currentMap[elev].Buttons[floor][def.BT_Cab] = newMap[elev].Buttons[floor][def.BT_Cab]
+                allChangesMade = true
+              }
+            }
+          }
+        }
+      }
+    }
+
+    MakeBackup(currentMap)
+    SetElevMap(currentMap)
+
+    return currentMap, allChangesMade
+}
 
 
+func GetNewEvent(newMap ElevatorMap) (ElevatorMap, [][]int) {
+  currentMap := GetElevMap()
+  var buttonChanges [][]int
 
-    makeBackup(UpdateMap)
-    SetElevMap(updatedMap)
-    return updatedMap, boolVal
+  for elev := 0; elev < def.NUMELEVATORS; elev++ {
+    if currentMap[def.LOCAL_ID].State != def.S_Dead && newMap[def.LOCAL_ID].State != def.S_Dead {
+
+      for floor := 0; floor < def.NUMFLOORS; floor++ {
+        for button := 0; button < def.NUMBUTTON_TYPES, button++ {
+
+          if newMap[elev].Buttons[floor][button] == 1 && currentMap[elev].Buttons[floor][button] != 1 {
+            if button != def.BT_Cab {
+              currentMap[elev].Buttons[floor][button] = newMap[elev].Buttons[floor][button]
+              buttonChanges = append(buttonChanges, []int{floor, button})
+            } else {
+              currentMap[elev].Buttons[floor][button] = newMap[elev].Buttons[floor][button]
+            }
+          }
+        }
+      }
+    }
+  }
+
+  MakeBackup(currentMap)
+  SetElevMap(currentMap)
+
+  return currentMap, buttonChanges
 }
 
 
@@ -75,12 +194,12 @@ func GetElevMap() ElevatorMap {
 func MakeEmptyElevMap() *ElevatorMap {
     emptyMap := new(ElevatorMap)
 
-    for el int; el<NUMELEVATORS; el++ {
-        emptyMap.ElevID = el
-        for fl int; fl<NUMFLOORS; fl++ {
-            for b int; b<NUMBUTTON_TYPES; b++ {
-                emptyMap[el].Buttons[fl][b] = 0
-                emptyMap[el].Orders[fl][b] = 0
+    for elev int; elev < NUMELEVATORS; elev++ {
+        emptyMap.ElevID = elev
+        for floor int; floor < NUMFLOORS; floor++ {
+            for button int; button < NUMBUTTON_TYPES; button++ {
+                emptyMap[elev].Buttons[floor][button] = 0
+                emptyMap[elev].Orders[floor][button] = 0
             }
         }
         emptyMap.State = def.S_Idle
@@ -88,4 +207,9 @@ func MakeEmptyElevMap() *ElevatorMap {
         emptyMap.Floor = -1 //kanskje 0 i stedet?
     }
     return emptyMap
+}
+
+
+func isClosestElevator() bool {
+  
 }
