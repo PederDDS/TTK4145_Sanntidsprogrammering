@@ -39,10 +39,10 @@ const (
 type ElevState int
 const (
 	S_Dead ElevState 	= 0
-	S_Init 				= 1
-	S_Idle 				= 2
-	S_Moving	 		= 3
-	S_DoorOpen  		= 4
+	S_Init 						= 1
+	S_Idle 						= 2
+	S_Moving	 				= 3
+	S_DoorOpen  			= 4
 )
 
 

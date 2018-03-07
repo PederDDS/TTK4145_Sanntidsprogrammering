@@ -3,6 +3,7 @@ package main
 import (
 	"../def"
 	"../IO"
+	"../fsm"
 	//"net"
 	"../network/bcast"
 	//"../network/localip"
@@ -18,9 +19,7 @@ func main() {
 
 			send_port := 20011
 			recieve_port := 20012
-
-	    var motor_direction IO.MotorDirection = IO.MD_Up
-	    IO.SetMotorDirection(motor_direction)
+			var motor_direction IO.MotorDirection
 
 	    drv_buttons := make(chan IO.ButtonEvent)
 	    drv_floors  := make(chan int)
@@ -28,6 +27,7 @@ func main() {
 	    drv_stop    := make(chan bool)
 			bcast_chn		:= make(chan IO.ButtonEvent)
 			recieve_chn	:= make(chan string)
+			fsm_chn			:= make(chan bool)
 
 	    go IO.PollButtons(drv_buttons)
 	    go IO.PollFloorSensor(drv_floors)
@@ -35,6 +35,10 @@ func main() {
 	    go IO.PollStopButton(drv_stop)
 			go bcast.Transmitter(send_port, bcast_chn)
 			go bcast.Receiver(recieve_port, recieve_chn)
+
+			go fsm.Initialize(drv_floors, fsm_chn)
+			<- fsm_chn
+			fmt.Println("Elevator initialized")
 
 	    for {
 	        select {
