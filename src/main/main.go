@@ -4,69 +4,74 @@ import (
 	"../def"
 	"../IO"
 	//"net"
-	//"../network/bcast"
+	"../network/bcast"
 	//"../network/localip"
 	// "flag"
 	"fmt"
 	//"os"
 	//"time"
-	// "time"
 )
-
-type HelloMsg struct {
-	Message string
-	Iter    int
-}
 
 func main() {
 
 	    IO.Init("localhost:15657", def.NUMFLOORS)
 
-	    var d IO.MotorDirection = IO.MD_Up
-	    //IO.SetMotorDirection(d)
+			send_port := 20011
+			recieve_port := 20012
+
+	    var motor_direction IO.MotorDirection = IO.MD_Up
+	    IO.SetMotorDirection(motor_direction)
 
 	    drv_buttons := make(chan IO.ButtonEvent)
 	    drv_floors  := make(chan int)
 	    drv_obstr   := make(chan bool)
 	    drv_stop    := make(chan bool)
+			bcast_chn		:= make(chan IO.ButtonEvent)
+			recieve_chn	:= make(chan string)
 
 	    go IO.PollButtons(drv_buttons)
 	    go IO.PollFloorSensor(drv_floors)
 	    go IO.PollObstructionSwitch(drv_obstr)
 	    go IO.PollStopButton(drv_stop)
-
+			go bcast.Transmitter(send_port, bcast_chn)
+			go bcast.Receiver(recieve_port, recieve_chn)
 
 	    for {
 	        select {
-	        case a := <- drv_buttons:
-	            fmt.Printf("%+v\n", a)
-	            IO.SetButtonLamp(a.Button, a.Floor, true)
+	        case msg_button := <- drv_buttons:
+	            fmt.Printf("%+v\n", msg_button)
+	            IO.SetButtonLamp(msg_button.Button, msg_button.Floor, true)
+							bcast_chn <- msg_button
 
-	        case a := <- drv_floors:
-	            fmt.Printf("%+v\n", a)
-	            if a == def.NUMFLOORS-1 {
-	                d = IO.MD_Down
-	            } else if a == 0 {
-	                d = IO.MD_Up
+	        case msg_floor := <- drv_floors:
+	            fmt.Printf("%+v\n", msg_floor)
+	            if msg_floor == def.NUMFLOORS-1 {
+	                motor_direction = IO.MD_Down
+	            } else if msg_floor == 0 {
+	                motor_direction = IO.MD_Up
 	            }
-	            IO.SetMotorDirection(d)
+	            IO.SetMotorDirection(motor_direction)
 
 
-	        case a := <- drv_obstr:
-	            fmt.Printf("%+v\n", a)
-	            if a {
+	        case msg_obstruction := <- drv_obstr:
+	            fmt.Printf("%+v\n", msg_obstruction)
+	            if msg_obstruction {
 	                IO.SetMotorDirection(IO.MD_Stop)
 	            } else {
-	                IO.SetMotorDirection(d)
+	                IO.SetMotorDirection(motor_direction)
 	            }
 
-	        case a := <- drv_stop:
-	            fmt.Printf("%+v\n", a)
-	            for f := 0; f < def.NUMFLOORS; f++ {
-	                for b := IO.ButtonType(0); b < 3; b++ {
-	                    IO.SetButtonLamp(b, f, false)
-	                }
-	            }
+	        case msg_stop := <- drv_stop:
+	            fmt.Printf("%+v\n", msg_stop)
+	            for floor := 0; floor < def.NUMFLOORS; floor++ {
+	                for button := IO.ButtonType(0); button < def.NUMBUTTON_TYPES; button++ {
+	                    IO.SetButtonLamp(button, floor, false)
+									}
+							}
+
+					case msg_recieve := <- recieve_chn:
+							fmt.Printf("%+v\n", msg_recieve)
+
 	        }
 	    }
 	}
