@@ -10,7 +10,7 @@ var mapMtx sync.Mutex
 var localElevMap *ElevatorMap
 
 //structs and constants
-type ElevatorMap[def.NUMELEVATORS]def.Elev struct
+type ElevatorMap [def.NUMELEVATORS] def.Elev
 /*
 type CompleteElevMap struct {
     elevMap[NumElevators] elevatorMap
@@ -31,9 +31,7 @@ const (
     ORDER_IMPOSSIBLE         = -1
 )
 
-type ElevRequests struct {
-    requests []
-}
+type ElevRequests []Request
 
 
 //functions
@@ -79,7 +77,7 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool){
       if currentMap[def.LOCAL_ID].State != def.S_Dead && newMap[def.LOCAL_ID].State != def.S_Dead {
 
         for floor := 0; floor < def.NUMFLOORS; floor++ {
-          for button := 0; button < def.NUMBUTTON_TYPES, button++ {
+          for button := 0; button < def.NUMBUTTON_TYPES; button++ {
 
             //set buttons to 0 or 2 depending on if there is an order or not
             //if there is an accepted order, then buttons should be set to 2
@@ -155,7 +153,7 @@ func GetNewEvent(newMap ElevatorMap) (ElevatorMap, [][]int) {
     if currentMap[def.LOCAL_ID].State != def.S_Dead && newMap[def.LOCAL_ID].State != def.S_Dead {
 
       for floor := 0; floor < def.NUMFLOORS; floor++ {
-        for button := 0; button < def.NUMBUTTON_TYPES, button++ {
+        for button := 0; button < def.NUMBUTTON_TYPES; button++ {
 
           if newMap[elev].Buttons[floor][button] == 1 && currentMap[elev].Buttons[floor][button] != 1 {
             if button != def.BT_Cab {
@@ -195,10 +193,10 @@ func GetElevMap() ElevatorMap {
 func MakeEmptyElevMap() *ElevatorMap {
     emptyMap := new(ElevatorMap)
 
-    for elev int; elev < NUMELEVATORS; elev++ {
+    for elev := 0; elev < NUMELEVATORS; elev++ {
         emptyMap.ElevID = elev
-        for floor int; floor < NUMFLOORS; floor++ {
-            for button int; button < NUMBUTTON_TYPES; button++ {
+        for floor := 0; floor < NUMFLOORS; floor++ {
+            for button := 0; button < NUMBUTTON_TYPES; button++ {
                 emptyMap[elev].Buttons[floor][button] = 0
                 emptyMap[elev].Orders[floor][button] = 0
             }
