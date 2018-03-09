@@ -35,7 +35,7 @@ func main() {
 	    go IO.PollStopButton(drv_stop)
 			go bcast.Transmitter(send_port, bcast_chn)
 			go bcast.Receiver(recieve_port, recieve_chn)
-			go fsm.PrintState()
+			//go fsm.PrintState()
 
 			fsm.Initialize(drv_floors, fsm_chn, IO.MD_Up)
 			<- fsm_chn

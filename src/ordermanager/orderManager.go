@@ -42,7 +42,7 @@ func InitElevMap(backup bool) {
     if backup {
       *localElevMap = GetBackup()
     } else {
-      *localElevMap = MakeEmptyElevMap()
+      localElevMap = MakeEmptyElevMap()
     }
 
     MakeBackup(*localElevMap)
@@ -190,20 +190,20 @@ func GetElevMap() ElevatorMap {
 }
 
 
-func MakeEmptyElevMap() ElevatorMap {
+func MakeEmptyElevMap() *ElevatorMap {
     emptyMap := new(ElevatorMap)
 
-    for elev := 0; elev < NUMELEVATORS; elev++ {
-        emptyMap.ElevID = elev
-        for floor := 0; floor < NUMFLOORS; floor++ {
-            for button := 0; button < NUMBUTTON_TYPES; button++ {
+    for elev := 0; elev < def.NUMELEVATORS; elev++ {
+        emptyMap[elev].ElevID = elev
+        for floor := 0; floor < def.NUMFLOORS; floor++ {
+            for button := 0; button < def.NUMBUTTON_TYPES; button++ {
                 emptyMap[elev].Buttons[floor][button] = 0
                 emptyMap[elev].Orders[floor][button] = 0
             }
         }
-        emptyMap.State = def.S_Idle
-        emptyMap.Dir = def.MD_Stop
-        emptyMap.Floor = -1 //kanskje 0 i stedet?
+        emptyMap[def.LOCAL_ID].State = def.S_Idle
+        emptyMap[def.LOCAL_ID].Dir = def.MD_Stop
+        emptyMap[def.LOCAL_ID].Floor = -1
     }
     return emptyMap
 }

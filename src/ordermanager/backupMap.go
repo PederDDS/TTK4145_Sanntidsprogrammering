@@ -80,18 +80,18 @@ func GetBackup() ElevatorMap {
 				backupMap[elevator].Buttons[floor][button], _ = strconv.Atoi(stringMap[elevator*(5+def.NUMFLOORS)+1+floor][button])
 			}
 		}
-		dir2int := int(backupMap[elevator].Dir)
-		state2int := int(backupMap[elevator].State)
-		dir2int, _ = strconv.Atoi(stringMap[elevator*(5+def.NUMFLOORS)+def.NUMFLOORS+1][0])
+		dir, _ := strconv.Atoi(stringMap[elevator*(5+def.NUMFLOORS)+def.NUMFLOORS+1][0])
+		state, _ := strconv.Atoi(stringMap[elevator*(5+def.NUMFLOORS)+def.NUMFLOORS+3][0])
+		backupMap[elevator].Dir = def.MotorDirection(dir)
 		backupMap[elevator].Floor, _ = strconv.Atoi(stringMap[elevator*(5+def.NUMFLOORS)+def.NUMFLOORS+2][0])
-		state2int, _ = strconv.Atoi(stringMap[elevator*(5+def.NUMFLOORS)+def.NUMFLOORS+3][0])
+		backupMap[elevator].State = def.ElevState(state)
 
 	}
 	return backupMap
 }
 
 
-func WriteBackup(backupMap ElevatorMap) {
+func MakeBackup(backupMap ElevatorMap) {
 	backupFile, err := os.Create("src/ordermanager/backup.txt")
 
 	if err != nil {

@@ -11,7 +11,7 @@ import (
 
 var elevator_state def.ElevState = def.S_Dead
 var motor_direction IO.MotorDirection
-var currentMap ordermanager.ElevatorMap = ordermanager.MakeEmptyElevMap()
+var currentMap *ordermanager.ElevatorMap = ordermanager.MakeEmptyElevMap()
 
 func timer(timeout chan<- bool){
   fmt.Println("Timer started")
@@ -34,7 +34,7 @@ func Initialize(floor_detection <-chan int, to_main chan<- bool, direction IO.Mo
     elevator_state = def.S_Idle
     time.Sleep(2*time.Second)
     to_main <- true
- case <- timeout:
+  case <- timeout:
   fmt.Println("Timed out")
   Initialize(floor_detection, to_main, - motor_direction)
   }
@@ -67,7 +67,7 @@ func FSM(/*Lots of channels*/) {
     // Check for orders         -> S_Moving
     // If order on floor        -> S_DoorOpen
     // If no orders             -> S_Idle
-    // If unable to initialize  -> S_Dead
+    // If unable to initialize  -> S_Init
   case def.S_Idle:
     // Check for orders   -> S_Moving
     // If order on floor  -> S_DoorOpen
@@ -79,11 +79,11 @@ func FSM(/*Lots of channels*/) {
     // If no orders     -> S_Idle
   }
 }
-/*
 
-func ChooseDirection() int {
 
-}
+//func ChooseDirection() int {
+// return 0
+//}
 
 
 func OrderAbove(currentMap ordermanager.ElevatorMap) bool {
@@ -108,14 +108,15 @@ func OrderBelow(currentMap ordermanager.ElevatorMap) bool {
 
 func DeleteOrdersOnFloor(currentMap ordermanager.ElevatorMap, currentFloor int) ordermanager.ElevatorMap {
   for elev := 0; elev < def.NUMELEVATORS; elev++ {
-    currentMap[elev].Buttons[floor][def.BT_HallUp] = 0
-    currentMap[elev].Buttons[floor][def.BT_HallDown] = 0
+    currentMap[elev].Buttons[currentFloor][def.BT_HallUp] = 0
+    currentMap[elev].Buttons[currentFloor][def.BT_HallDown] = 0
   }
-  currentMap[def.LOCAL_ID].Buttons[floor][def.BT_Cab] = 0
+  currentMap[def.LOCAL_ID].Buttons[currentFloor][def.BT_Cab] = 0
 
   for button := 0; button < def.NUMBUTTON_TYPES; button++ {
-    currentMap[def.LOCAL_ID].Orders[floor][button] = 0
+    currentMap[def.LOCAL_ID].Orders[currentFloor][button] = 0
   }
+return currentMap
 }
 
 
@@ -131,10 +132,9 @@ func IsOrderOnFloor(currentMap ordermanager.ElevatorMap, currentFloor int) bool 
   }
 
   for button := 0; button < def.NUMBUTTON_TYPES; button++ {
-    if currentMap[def.LOCAL_ID].Orders[floor][button] == 1 {
+    if currentMap[def.LOCAL_ID].Orders[currentFloor][button] == 1 {
       return true
     }
   }
   return false
 }
-*/
