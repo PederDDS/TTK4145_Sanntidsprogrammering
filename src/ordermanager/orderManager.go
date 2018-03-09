@@ -1,8 +1,8 @@
 package ordermanager
 
 import (
-    "fmt"
-    "../def/"
+    //"fmt"
+    "../def"
     "sync"
 )
 
@@ -25,7 +25,7 @@ type BroadcastElevMap struct {
 */
 type Request int
 const (
-    NO_ORDER request         = 0
+    NO_ORDER Request         = 0
     ORDER                    = 1
     ORDER_ACCEPTED           = 2
     ORDER_IMPOSSIBLE         = -1
@@ -35,7 +35,7 @@ type ElevRequests []Request
 
 
 //functions
-func InitElevMap() {
+func InitElevMap(backup bool) {
     mapMtx.Lock()
     localElevMap := new(ElevatorMap)
 
@@ -52,7 +52,7 @@ func InitElevMap() {
 
 func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool){
     currentMap := GetElevMap()
-    allChangesMade = false
+    allChangesMade := false
 
     //update direction
     if newMap[def.LOCAL_ID].Dir != currentMap[def.LOCAL_ID].Dir {
@@ -190,7 +190,7 @@ func GetElevMap() ElevatorMap {
 }
 
 
-func MakeEmptyElevMap() *ElevatorMap {
+func MakeEmptyElevMap() ElevatorMap {
     emptyMap := new(ElevatorMap)
 
     for elev := 0; elev < NUMELEVATORS; elev++ {

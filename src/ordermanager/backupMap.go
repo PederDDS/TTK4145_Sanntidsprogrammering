@@ -48,7 +48,7 @@ func SoftwareBackup() {
 
 }
 
-func ReadBackup() ElevatorMap {
+func GetBackup() ElevatorMap {
 	backupFile, err := ioutil.ReadFile("src/ordermanager/backup.txt")
 
 	if err != nil {
@@ -74,20 +74,20 @@ func ReadBackup() ElevatorMap {
 	backupMap := *MakeEmptyElevMap()
 
 	for elevator := 0; elevator < def.NUMELEVATORS; elevator++ {
-		backupMap[elevator].ID, _ = strconv.Atoi(stringMap[e*(5+def.NUMFLOORS)][0])
+		backupMap[elevator].ElevID, _ = strconv.Atoi(stringMap[elevator*(5+def.NUMFLOORS)][0])
 		for floor := 0; floor < def.NUMFLOORS; floor++ {
-			for button := 0; button < def.NUMBUTTONS; button++ {
+			for button := 0; button < def.NUMBUTTON_TYPES; button++ {
 				backupMap[elevator].Buttons[floor][button], _ = strconv.Atoi(stringMap[elevator*(5+def.NUMFLOORS)+1+floor][button])
 			}
 		}
-		backupMap[elevator].Direction, _ = strconv.Atoi(stringMap[elevator*(5+def.NUMFLOORS)+def.NUMFLOORS+1][0])
-		backupMap[elevator].Position, _ = strconv.Atoi(stringMap[elevator*(5+def.NUMFLOORS)+def.NUMFLOORS+2][0])
-		backupMap[elevator].Door, _ = strconv.Atoi(stringMap[elevator*(5+def.NUMFLOORS)+def.NUMFLOORS+3][0])
-		backupMap[elevator].IsAlive, _ = strconv.Atoi(stringMap[elevator*(5+def.NUMFLOORS)+def.NUMFLOORS+4][0])
+		dir2int := int(backupMap[elevator].Dir)
+		state2int := int(backupMap[elevator].State)
+		dir2int, _ = strconv.Atoi(stringMap[elevator*(5+def.NUMFLOORS)+def.NUMFLOORS+1][0])
+		backupMap[elevator].Floor, _ = strconv.Atoi(stringMap[elevator*(5+def.NUMFLOORS)+def.NUMFLOORS+2][0])
+		state2int, _ = strconv.Atoi(stringMap[elevator*(5+def.NUMFLOORS)+def.NUMFLOORS+3][0])
+
 	}
-
 	return backupMap
-
 }
 
 
@@ -103,18 +103,20 @@ func WriteBackup(backupMap ElevatorMap) {
 	stringMap := [][]string{}
 
 	for elevator := 0; elevator < def.NUMELEVATORS; elevator++ {
-		stringMap = append(stringMap, []string{strconv.Itoa(backupMap[elevator].ID)})
+		stringMap = append(stringMap, []string{strconv.Itoa(backupMap[elevator].ElevID)})
 		for floor := 0; floor < def.NUMFLOORS; floor++ {
 			stringArray := []string{}
-			for button := 0; button < def.NUMBUTTONS; button++ {
-				stringArray = append(stringArray, strconv.Itoa(backupMap[elevator].Buttons[floors][buttons]))
+			for button := 0; button < def.NUMBUTTON_TYPES; button++ {
+				stringArray = append(stringArray, strconv.Itoa(backupMap[elevator].Buttons[floor][button]))
 			}
 			stringMap = append(stringMap, stringArray)
 		}
-		stringMap = append(stringMap, []string{strconv.Itoa(backupMap[elevator].Direction)})
-		stringMap = append(stringMap, []string{strconv.Itoa(backupMap[elevator].Position)})
-		stringMap = append(stringMap, []string{strconv.Itoa(backupMap[elevator].Door)})
-		stringMap = append(stringMap, []string{strconv.Itoa(backupMap[elevator].IsAlive)})
+
+		dir2int := int(backupMap[elevator].Dir)
+		state2int := int(backupMap[elevator].State)
+		stringMap = append(stringMap, []string{strconv.Itoa(dir2int)})
+		stringMap = append(stringMap, []string{strconv.Itoa(backupMap[elevator].Floor)})
+		stringMap = append(stringMap, []string{strconv.Itoa(state2int)})
 	}
 	backupWriter := csv.NewWriter(backupFile)
 	err = backupWriter.WriteAll(stringMap)
