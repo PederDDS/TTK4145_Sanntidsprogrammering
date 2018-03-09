@@ -211,5 +211,5 @@ func MakeEmptyElevMap() *ElevatorMap {
 
 
 func isClosestElevator() bool {
-  
+  return false
 }

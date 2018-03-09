@@ -27,7 +27,7 @@ func main() {
 	    drv_stop    := make(chan bool)
 			bcast_chn		:= make(chan IO.ButtonEvent)
 			recieve_chn	:= make(chan string)
-			//fsm_chn			:= make(chan bool)
+			fsm_chn			:= make(chan bool, 1)
 
 	    go IO.PollButtons(drv_buttons)
 	    go IO.PollFloorSensor(drv_floors)
@@ -37,12 +37,14 @@ func main() {
 			go bcast.Receiver(recieve_port, recieve_chn)
 			go fsm.PrintState()
 
-			fsm.Initialize(drv_floors, IO.MD_Up)
+			fsm.Initialize(drv_floors, fsm_chn, IO.MD_Up)
+			<- fsm_chn
 			fmt.Println("Elevator initialized")
 
-			IO.SetMotorDirection(IO.MD_Up)
+			IO.SetMotorDirection(IO.MD_Down)
 
 	    for {
+					fmt.Println("Looping")
 	        select {
 	        case msg_button := <- drv_buttons:
 	            fmt.Printf("%+v\n", msg_button)

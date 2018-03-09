@@ -4,12 +4,13 @@ import (
   "fmt"
   "time"
   "../def"
-  //"../ordermanager"
+  "../ordermanager"
   "../IO"
 )
 
 var elevator_state def.ElevState = def.S_Dead
 var motor_direction IO.MotorDirection
+var currentMap ordermanager.ElevatorMap = ordermanager.MakeEmptyElevMap()
 
 func timer(timeout chan<- bool){
   fmt.Println("Timer started")
@@ -18,8 +19,8 @@ func timer(timeout chan<- bool){
   fmt.Println("Timeout sent")
 }
 
-func Initialize(floor_detection <-chan int, direction IO.MotorDirection){
-  timeout := make(chan bool)
+func Initialize(floor_detection <-chan int, to_main chan<- bool, direction IO.MotorDirection){
+  timeout := make(chan bool, 1)
   elevator_state = def.S_Init
   motor_direction = direction
   IO.SetMotorDirection(motor_direction)
@@ -30,15 +31,17 @@ func Initialize(floor_detection <-chan int, direction IO.MotorDirection){
     motor_direction = IO.MD_Stop
     IO.SetMotorDirection(motor_direction)
     elevator_state = def.S_Idle
-  case <- timeout:
-    fmt.Println("Timed out")
-    Initialize(floor_detection, - motor_direction)
+    time.Sleep(2*time.Second)
+    to_main <- true
+ case <- timeout:
+  fmt.Println("Timed out")
+  Initialize(floor_detection, to_main, - motor_direction)
   }
 }
 
 func PrintState(){
   for{
-    time.Sleep(time.Second)
+    time.Sleep(2*time.Second)
     switch elevator_state{
     case def.S_Dead:
       fmt.Println("State: Dead")
