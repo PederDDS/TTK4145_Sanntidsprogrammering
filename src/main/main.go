@@ -41,6 +41,7 @@ func main() {
 			<- fsm_chn
 			fmt.Println("Elevator initialized")
 
+
 			IO.SetMotorDirection(IO.MD_Down)
 
 	    for {

@@ -8,6 +8,7 @@ import (
   "../IO"
 )
 
+
 var elevator_state def.ElevState = def.S_Dead
 var motor_direction IO.MotorDirection
 var currentMap ordermanager.ElevatorMap = ordermanager.MakeEmptyElevMap()

@@ -100,6 +100,7 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool){
               }
             }
 
+
             //set all values to 1
             if newMap[elev].Buttons[floor][button] == 1 && currentMap[elev].Buttons[floor][button] == 0 {
               if button != def.BT_Cab {

@@ -90,6 +90,7 @@ func ReadBackup() ElevMap {
 
 }
 
+
 func WriteBackup(backupMap ElevMap) {
 	backupFile, err := os.Create("src/ordermanager/backup.txt")
 
