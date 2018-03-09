@@ -124,3 +124,32 @@ func MakeBackup(backupMap ElevatorMap) {
 		log.Fatal(err)
 	}
 }
+
+
+func AmIBackup() bool {
+	var msg bool
+	addr, err := net.ResolveUDPAddr("udp", def.BACKUP_PORT)
+	if err != nil {
+		log.Fatal(err)
+	}
+	listenCon, err := net.ListenUDP("udp", addr)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer listenCon.Close()
+	buffer := make([]byte, 16)
+
+	for {
+		listenCon.SetReadDeadline(time.Now().Add(600 * time.Millisecond))
+		n, _, err := listenCon.ReadFromUDP(buffer[:])
+		if n > 0 {
+			json.Unmarshal(buffer[0:n], &msg)
+			if err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			fmt.Println("Elevator not alive, I'm taking over")
+			return msg
+		}
+	}
+}

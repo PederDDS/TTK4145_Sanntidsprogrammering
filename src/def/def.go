@@ -12,8 +12,8 @@ const (
 	BUTTON_PUSHED 		= 2
 	DOOR_TIMEOUT 		= 3
 
-	BACKUP_IP 			= "	127.0.0.1" //to be decided
-	BACKUP_PORT 		= 0
+	BACKUP_IP 			= "	127.0.0.1:30000" //to be decided
+	BACKUP_PORT 		= ":30000"
 	LOCAL_ID 			= 0
 
 )

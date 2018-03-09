@@ -3,6 +3,7 @@ package main
 import (
 	"../def"
 	"../IO"
+	"../ordermanager"
 	"../fsm"
 	//"net"
 	"../network/bcast"
@@ -14,35 +15,33 @@ import (
 )
 
 func main() {
-
+		backup := ordermanager.AmIBackup()
 	    IO.Init("localhost:15657", def.NUMFLOORS)
+		ordermanager.InitElevMap(backup)
 
-			send_port := 20011
-			recieve_port := 20012
-			var motor_direction IO.MotorDirection
+		send_port := 20011
+		recieve_port := 20012
+		var motor_direction IO.MotorDirection
 
 	    drv_buttons := make(chan IO.ButtonEvent)
 	    drv_floors  := make(chan int)
 	    drv_obstr   := make(chan bool)
 	    drv_stop    := make(chan bool)
-			bcast_chn		:= make(chan IO.ButtonEvent)
-			recieve_chn	:= make(chan string)
-			fsm_chn			:= make(chan bool, 1)
+		bcast_chn		:= make(chan IO.ButtonEvent)
+		recieve_chn	:= make(chan string)
+		fsm_chn			:= make(chan bool, 1)
+		elevator_map_chn := make(chan def.MapMessage)
 
 	    go IO.PollButtons(drv_buttons)
 	    go IO.PollFloorSensor(drv_floors)
 	    go IO.PollObstructionSwitch(drv_obstr)
 	    go IO.PollStopButton(drv_stop)
-			go bcast.Transmitter(send_port, bcast_chn)
-			go bcast.Receiver(recieve_port, recieve_chn)
-			//go fsm.PrintState()
+		go bcast.Transmitter(send_port, bcast_chn)
+		go fsm.FSM(drv_buttons, drv_floors, fsm_chn, init)
+		go bcast.Receiver(recieve_port, recieve_chn)
 
-			fsm.Initialize(drv_floors, fsm_chn, IO.MD_Up)
-			<- fsm_chn
-			fmt.Println("Elevator initialized")
-
-
-			IO.SetMotorDirection(IO.MD_Down)
+		motor_direction = IO.MD_Down
+		IO.SetMotorDirection(motor_direction)
 
 	    for {
 					fmt.Println("Looping")
