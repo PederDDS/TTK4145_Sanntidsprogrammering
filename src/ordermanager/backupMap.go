@@ -120,3 +120,4 @@ func WriteBackup(backupMap ElevMap) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
