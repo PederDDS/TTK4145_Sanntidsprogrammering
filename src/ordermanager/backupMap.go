@@ -40,7 +40,7 @@ func SoftwareBackup() {
 	for {
 		select {
 		case <-backupTicker.C:
-			jsonBuf, _ := json.Marshal(aliveMsg)
+			jsonBuf, _ := json.Marshal(aliveMessage)
 			backupConn.Write(jsonBuf)
 		}
 
@@ -48,7 +48,7 @@ func SoftwareBackup() {
 
 }
 
-func ReadBackup() ElevMap {
+func ReadBackup() ElevatorMap {
 	backupFile, err := ioutil.ReadFile("src/ordermanager/backup.txt")
 
 	if err != nil {
@@ -74,10 +74,10 @@ func ReadBackup() ElevMap {
 	backupMap := *MakeEmptyElevMap()
 
 	for elevator := 0; elevator < def.NUMELEVATORS; elevator++ {
-		backupMap[e].ID, _ = strconv.Atoi(stringMap[e*(5+def.NUMFLOORS)][0])
+		backupMap[elevator].ID, _ = strconv.Atoi(stringMap[e*(5+def.NUMFLOORS)][0])
 		for floor := 0; floor < def.NUMFLOORS; floor++ {
-			for button := 0; Button < def.NUMFBUTTONS; button++ {
-				backupMap[elevator].Buttons[floor][button], _ = strconv.Atoi(stringMap[elevator*(5+def.FLOORS)+1+f][button])
+			for button := 0; button < def.NUMBUTTONS; button++ {
+				backupMap[elevator].Buttons[floor][button], _ = strconv.Atoi(stringMap[elevator*(5+def.NUMFLOORS)+1+floor][button])
 			}
 		}
 		backupMap[elevator].Direction, _ = strconv.Atoi(stringMap[elevator*(5+def.NUMFLOORS)+def.NUMFLOORS+1][0])
@@ -91,7 +91,7 @@ func ReadBackup() ElevMap {
 }
 
 
-func WriteBackup(backupMap ElevMap) {
+func WriteBackup(backupMap ElevatorMap) {
 	backupFile, err := os.Create("src/ordermanager/backup.txt")
 
 	if err != nil {
