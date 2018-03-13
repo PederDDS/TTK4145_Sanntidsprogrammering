@@ -1,7 +1,7 @@
 package ordermanager
 
 import (
-    //"fmt"
+    "fmt"
     "../def"
     "sync"
 )
@@ -36,6 +36,7 @@ type ElevRequests []Request
 
 //functions
 func InitElevMap(backup bool) {
+    fmt.Println("func: InitElevMap")
     mapMtx.Lock()
     localElevMap := new(ElevatorMap)
 
@@ -51,6 +52,7 @@ func InitElevMap(backup bool) {
 
 
 func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool){
+    fmt.Println("UpdateElevMap")
     currentMap := GetElevMap()
     allChangesMade := false
 
@@ -146,6 +148,7 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool){
 
 
 func GetNewEvent(newMap ElevatorMap) (ElevatorMap, [][]int) {
+  fmt.Println("func: GetNewEvent")
   currentMap := GetElevMap()
   var buttonChanges [][]int
 
@@ -176,6 +179,7 @@ func GetNewEvent(newMap ElevatorMap) (ElevatorMap, [][]int) {
 
 
 func SetElevMap(newMap ElevatorMap) {
+    fmt.Println("func: SetElevMap")
     mapMtx.Lock()
     *localElevMap = newMap
     mapMtx.Unlock()
@@ -183,6 +187,7 @@ func SetElevMap(newMap ElevatorMap) {
 
 
 func GetElevMap() ElevatorMap {
+    fmt.Println("func: GetElevMap")
     mapMtx.Lock()
     elevMap := *localElevMap
     mapMtx.Unlock()
@@ -191,6 +196,7 @@ func GetElevMap() ElevatorMap {
 
 
 func MakeEmptyElevMap() *ElevatorMap {
+    fmt.Println("func: MakeEmptyElevMap")
     emptyMap := new(ElevatorMap)
 
     for elev := 0; elev < def.NUMELEVATORS; elev++ {
@@ -210,5 +216,6 @@ func MakeEmptyElevMap() *ElevatorMap {
 
 
 func isClosestElevator() bool {
+  fmt.Println("func: isClosestElevator")
   return false
 }

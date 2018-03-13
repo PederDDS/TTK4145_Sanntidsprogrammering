@@ -17,6 +17,7 @@ import (
 )
 
 func SoftwareBackup() {
+	fmt.Println("func: SoftwareBackup")
 	backupTicker := time.NewTicker(250 * time.Millisecond)
 	newBackup := exec.Command("gnome-terminal", "-x", "sh", "-c", "make run")
 	err := newBackup.Run()
@@ -49,6 +50,7 @@ func SoftwareBackup() {
 }
 
 func GetBackup() ElevatorMap {
+	fmt.Println("func: GetBackup")
 	backupFile, err := ioutil.ReadFile("src/ordermanager/backup.txt")
 
 	if err != nil {
@@ -92,7 +94,8 @@ func GetBackup() ElevatorMap {
 
 
 func MakeBackup(backupMap ElevatorMap) {
-	backupFile, err := os.Create("src/ordermanager/backup.txt")
+	fmt.Println("func: MakeBackup")
+	backupFile, err := os.Create("backup.txt")
 
 	if err != nil {
 		log.Fatal(err)
@@ -127,6 +130,7 @@ func MakeBackup(backupMap ElevatorMap) {
 
 
 func AmIBackup() bool {
+	fmt.Println("func: AmIBackup")
 	var msg bool
 	addr, err := net.ResolveUDPAddr("udp", def.BACKUP_PORT)
 	if err != nil {

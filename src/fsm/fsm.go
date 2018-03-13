@@ -11,7 +11,7 @@ import (
 
 var elevator_state def.ElevState = def.S_Dead
 var motor_direction IO.MotorDirection
-var init bool = false
+var initialized bool = false
 
 func timer(timeout chan<- bool){
   fmt.Println("Timer started")
@@ -20,11 +20,11 @@ func timer(timeout chan<- bool){
   fmt.Println("Timeout sent")
 }
 
-func Initialize(floor_detection <-chan int, to_main chan<- bool, elevator_map_chn chan<- def.MapMessage, direction IO.MotorDirection){
+func Initialize(floor_detection <-chan int, fsm_chn chan<- bool, elevator_map_chn chan<- def.MapMessage, direction IO.MotorDirection){
   timeout := make(chan bool, 1)
   elevator_state = def.S_Init
   motor_direction = direction
-  sendMessage := def.MakeMapMessage(nil, motor_direction)
+  //sendMessage := def.MakeMapMessage(nil, motor_direction)
   IO.SetMotorDirection(motor_direction)
   go timer(timeout)
   select{
@@ -34,10 +34,10 @@ func Initialize(floor_detection <-chan int, to_main chan<- bool, elevator_map_ch
     IO.SetMotorDirection(motor_direction)
     elevator_state = def.S_Idle
     time.Sleep(2*time.Second)
-    to_main <- true
+    fsm_chn <- true
   case <- timeout:
   fmt.Println("Timed out")
-  Initialize(floor_detection, to_main, - motor_direction)
+  Initialize(floor_detection, fsm_chn, elevator_map_chn, - motor_direction)
   }
 }
 
@@ -59,24 +59,18 @@ func PrintState(){
   }
 }
 
-drv_buttons := make(chan IO.ButtonEvent)
-drv_floors  := make(chan int)
-drv_obstr   := make(chan bool)
-drv_stop    := make(chan bool)
-bcast_chn		:= make(chan IO.ButtonEvent)
-recieve_chn	:= make(chan string)
-fsm_chn			:= make(chan bool, 1)
-
-func FSM(drv_buttons <-chan IO.ButtonEvent, drv_floors <-chan int, fsm_chn chan bool, elevator_map_chn chan def.MapMessage) {
-    if init == false {
+func FSM(drv_buttons <-chan IO.ButtonEvent, drv_floors <-chan int, fsm_chn chan bool, elevator_map_chn chan def.MapMessage, direction IO.MotorDirection) {
+    if initialized == false {
         Initialize(drv_floors, fsm_chn, elevator_map_chn, IO.MD_Up)
-        init = true
+        <- fsm_chn
+        initialized = true
+        fmt.Println("Elevator is initialized :O")
     }
 
     switch elevator_state{
     case def.S_Dead:
         // Initialize again, but in opposite direction? -> S_Init
-        Initialize(drv_floors, fsm_chn, - motor_direction)
+        Initialize(drv_floors, fsm_chn, elevator_map_chn, - motor_direction)
     case def.S_Init:
         // Check for orders         -> S_Moving
         // If order on floor        -> S_DoorOpen
