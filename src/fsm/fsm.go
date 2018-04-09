@@ -88,12 +88,19 @@ func FSM(drv_buttons <-chan IO.ButtonEvent, drv_floors <-chan int, fsm_chn chan 
         }
 
       default:
+
     }
   }
 }
 
-//func ChooseDirection() int {
-//}
+
+func ChooseDirection(currentMap ordermanager.ElevatorMap) IO.MotorDirection {
+  switch motor_direction {
+  case IO.MD_Up:
+    return IO.MD_Up
+  }
+  return IO.MD_Down
+}
 
 
 func OrderAbove(currentMap ordermanager.ElevatorMap) bool {
@@ -151,7 +158,32 @@ func IsOrderOnFloor(currentMap ordermanager.ElevatorMap, currentFloor int) bool 
 
 
 func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *time.Timer) {
+  currentMap := ordermanager.GetElevMap()
+  currentMap[def.LOCAL_ID].Floor = arrivalFloor
 
+  switch elevator_state {
+  case def.S_Idle:
+    sendMsg := def.MakeMapMessage(currentMap, nil)
+    msg_fromFSM <- sendMsg
+
+  case def.S_Moving:
+    if PossibleStopOnFloor(currentMap) {
+      IO.SetMotorDirection(def.MD_Stop)
+      IO.SetDoorOpenLamp(true)
+      IO.SetFloorIndicator(arrivalFloor)
+
+      motor_direction = def.MD_Stop
+      elevator_state = def.S_DoorOpen
+      currentMap[def.LOCAL_ID].State = elevator_state
+
+      currentMap := DeleteOrdersOnFloor(currentMap, arrivalFloor)
+
+      doorTimer.Reset(def.DOOR_TIMEOUT_TIME*time.Second)
+
+      sendMsg := def.MakeMapMessage(currentMap, nil)
+      msg_fromFSM <- sendMsg
+    }
+  }
 }
 
 
@@ -165,11 +197,40 @@ func ButtonPushed(msg_fromFSM chan def.MapMessage, floor int, button int, doorTi
 }
 
 
-//func DoorTimeout(msg_fromFSM chan def.MapMessage) {
+func DoorTimeout(msg_fromFSM chan def.MapMessage) {
+  switch elevator_state {
+  case def.S_DoorOpen:
+    currentMap := ordermanager.GetElevMap()
+    IO.SetDoorOpenLamp(false)
 
-//}
+    motor_direction := ChooseDirection(currentMap)
+    IO.SetMotorDirection(motor_direction)
+    currentMap[def.LOCAL_ID].Dir := motor_direction
+
+    if motor_direction == def.MD_Stop {
+      elevator_state := def.S_Idle
+    } else {
+      elevator_state := def.S_Moving
+    }
+
+    SendMapMessage(msg_fromFSM, currentMap, nil)
+  }
+}
 
 
 func PossibleStopOnFloor(currentMap ordermanager.ElevatorMap) bool {
+  floor := currentMap[def.LOCAL_ID].Floor
+  switch motor_direction {
+  case IO.MD_Up:
+    if currentMap[def.LOCAL_ID].Buttons[floor][def.BT_HallUp] == 1 {
+      return true
+    }
+  }
   return false
+}
+
+
+func SendMapMessage(msg_fromFSM chan def.MapMessage, newMap interface{}, newEvent interface{} ) {
+  sendMsg := def.MakeMapMessage(newMap, nil)
+  msg_fromFSM <- sendMsg
 }
