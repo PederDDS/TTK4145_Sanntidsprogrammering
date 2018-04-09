@@ -79,8 +79,16 @@ func PrintElevMap(){
         case 4:
           fmt.Println("State: Door open")
         }
-        fmt.Println("Buttons: ", localElevMap[elev].Buttons)
-        fmt.Println("Orders: ", localElevMap[elev].Orders)
+        fmt.Println("Buttons:     U D C")
+        fmt.Println("4th floor: ", localElevMap[elev].Buttons[3])
+        fmt.Println("3rd floor: ", localElevMap[elev].Buttons[2])
+        fmt.Println("2nd floor: ", localElevMap[elev].Buttons[1])
+        fmt.Println("1st floor: ", localElevMap[elev].Buttons[0])
+        fmt.Println("Orders:      U D C")
+        fmt.Println("4th floor: ", localElevMap[elev].Orders[3])
+        fmt.Println("3rd floor: ", localElevMap[elev].Orders[2])
+        fmt.Println("2nd floor: ", localElevMap[elev].Orders[1])
+        fmt.Println("1st floor: ", localElevMap[elev].Orders[0])
       }
   }
 }
