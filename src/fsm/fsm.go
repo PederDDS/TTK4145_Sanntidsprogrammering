@@ -76,42 +76,10 @@ func FSM(drv_buttons <-chan IO.ButtonEvent, drv_floors <-chan int, fsm_chn chan 
         fmt.Println("Elevator is initialized :O")
     }
 
-    switch elevator_state{
-    case def.S_Dead:
-        // Initialize again, but in opposite direction? -> S_Init
-        Initialize(drv_floors, fsm_chn, elevator_map_chn, - motor_direction)
-    case def.S_Init:
-        // Check for orders         -> S_Moving
-        // If order on floor        -> S_DoorOpen
-        // If no orders             -> S_Idle
-
-    case def.S_Idle:
-        // Check for orders   -> S_Moving
-        // If order on floor  -> S_DoorOpen
-
-    case def.S_Moving:
-      // Check for orders on passing floors                           -> S_DoorOpen
-        // If unable to reach floor after a reasonable amount of time   -> S_Dead
-
-    case def.S_DoorOpen:
-        // Check for orders -> S_Moving
-        // If no orders     -> S_Idle
-  }
-}
-
-
-func FSM(drv_buttons <-chan IO.ButtonEvent, drv_floors <-chan int, fsm_chn chan bool, elevator_map_chn chan def.MapMessage, direction IO.MotorDirection, msg_buttonEvent chan def.MapMessage, msg_fromHWFloor chan def.MapMessage, msg_fromHWButton chan def.MapMessage, msg_fromFSM chan def.MapMessage, msg_deadElev chan def.MapMessage) {
-    if initialized == false {
-        Initialize(drv_floors, fsm_chn, elevator_map_chn, IO.MD_Up)
-        <- fsm_chn
-        initialized = true
-        fmt.Println("Elevator is initialized :O")
-    }
-
 
     doorTimer := time.NewTimer(def.DOOR_TIMEOUT_TIME*time.Second)
     doorTimer.Stop()
-    idleTimer := time.NewTimer(IDLE_TIMEOUT_TIME*time.Second)
+    idleTimer := time.NewTimer(def.IDLE_TIMEOUT_TIME*time.Second)
 
     for {
       select {
@@ -119,26 +87,31 @@ func FSM(drv_buttons <-chan IO.ButtonEvent, drv_floors <-chan int, fsm_chn chan 
           switch msg.SendEvent.(def.NewEvent).EventType {
           case def.FLOOR_ARRIVAL:
             FloorArrival(msg_fromFSM, msg.SendEvent.(def.NewEvent).Type.(int), doorTimer)
-            idleTimer.Reset(IDLE_TIMEOUT_TIME*time.Second)
+            idleTimer.Reset(def.IDLE_TIMEOUT_TIME*time.Second)
           }
 
       case msg := <- msg_buttonEvent:
-          // Check for orders         -> S_Moving
-          // If order on floor        -> S_DoorOpen
-          // If no orders             -> S_Idle
+        switch msg.SendEvent.(def.NewEvent).EventType {
+        case def.BUTTON_PUSHED:
+          button := msg.SendEvent.(def.NewEvent).Type.([]int)
+          ButtonPushed(msg_fromFSM, button[0], button[1], doorTimer)
+          idleTimer.Reset(def.IDLE_TIMEOUT_TIME*time.Second)
+        }
 
-      case msg := msg_deadElev:
-          // Check for orders   -> S_Moving
-          // If order on floor  -> S_DoorOpen
+      case msg := <- msg_deadElev:
+        switch msg.SendEvent.(def.NewEvent).EventType {
+        case def.ELEVATOR_DEAD:
+          DeadElevator(msg_fromFSM, msg.SendEvent.(def.NewEvent).Type.(int))
+          idleTimer.Reset(def.IDLE_TIMEOUT_TIME*time.Second)
+        }
 
       default:
     }
   }
 }
 
-func ChooseDirection() int {
-  return 0
-}
+//func ChooseDirection() int {
+//}
 
 
 func OrderAbove(currentMap ordermanager.ElevatorMap) bool {
@@ -210,11 +183,11 @@ func ButtonPushed(msg_fromFSM chan def.MapMessage, floor int, button int, doorTi
 }
 
 
-func DoorTimeout(msg_fromFSM chan def.MapMessage) {
+//func DoorTimeout(msg_fromFSM chan def.MapMessage) {
 
-}
+//}
 
 
 func PossibleStopOnFloor(currentMap ordermanager.ElevatorMap) bool {
-
+  return false
 }
