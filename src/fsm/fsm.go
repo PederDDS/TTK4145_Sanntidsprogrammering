@@ -41,24 +41,6 @@ func Initialize(floor_detection <-chan int, fsm_chn chan<- bool, elevator_map_ch
   }
 }
 
-func PrintState(){
-  for{
-    time.Sleep(2*time.Second)
-    switch elevator_state{
-    case def.S_Dead:
-      fmt.Println("State: Dead")
-    case def.S_Init:
-      fmt.Println("State: Initializing")
-    case def.S_Idle:
-      fmt.Println("State: Idle")
-    case def.S_Moving:
-      fmt.Println("State: Moving")
-    case def.S_DoorOpen:
-      fmt.Println("State: Door Open")
-    }
-  }
-}
-
 func Dust(msg_fromFSM chan def.MapMessage){
   fmt.Println("func: Dust")
   currentMap := ordermanager.GetElevMap()
