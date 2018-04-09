@@ -47,9 +47,7 @@ func InitElevMap(backup bool) {
       localElevMap = MakeEmptyElevMap()
     }
 
-    fmt.Println("Adresse til kartet: ", localElevMap)
     MakeBackup(*localElevMap)
-    fmt.Println("Adresse til kartet: ", localElevMap)
     mapMtx.Unlock()
 }
 
@@ -192,12 +190,8 @@ func SetElevMap(newMap ElevatorMap) {
 func GetElevMap() ElevatorMap {
     fmt.Println("func: GetElevMap")
     mapMtx.Lock()
-    fmt.Println("Krasj 1")
-    fmt.Println("Adresse til kartet: ", localElevMap)
     elevMap := *localElevMap
-    fmt.Println("Krasj 2")
     mapMtx.Unlock()
-    fmt.Println("Krasj 3")
     return elevMap
 }
 
