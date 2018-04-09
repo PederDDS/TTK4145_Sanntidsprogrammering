@@ -18,29 +18,57 @@ func main() {
 		backup := ordermanager.AmIBackup()
 		fmt.Println("backup: ", backup)
 	  IO.Init("localhost:15657", def.NUMFLOORS)
+
 		ordermanager.InitElevMap(backup)
+		go ordermanager.SoftwareBackup()
 
 		var motor_direction IO.MotorDirection
 
+
+		msg_buttonEvent := make(chan def.MapMessage, 100)
+		msg_fromHWFloor := make(chan def.MapMessage, 100)
+		msg_fromHWButton := make(chan def.MapMessage, 100)
+		msg_toHW := make(chan def.MapMessage, 100)
+		msg_toNetwork := make(chan def.MapMessage, 100)
+		msg_fromNetwork := make(chan def.MapMessage, 100)
+		msg_fromFSM := make(chan def.MapMessage, 100)
+		msg_deadElev := make(chan def.MapMessage, 100)
+
 	  drv_buttons := make(chan IO.ButtonEvent)
 	  drv_floors  := make(chan int)
-	  drv_obstr   := make(chan bool)
-	  drv_stop    := make(chan bool)
-		//bcast_chn		:= make(chan IO.ButtonEvent)
-		//recieve_chn	:= make(chan string)
 		fsm_chn			:= make(chan bool, 1)
 		elevator_map_chn := make(chan def.MapMessage)
 
-	  go IO.PollButtons(drv_buttons)
-	  go IO.PollFloorSensor(drv_floors)
+		go IO.PollButtons(drv_buttons)
+		go IO.PollFloorSensor(drv_floors)
+
+
+		drv_obstr   := make(chan bool)
+	  drv_stop    := make(chan bool)
 	  go IO.PollObstructionSwitch(drv_obstr)
 	  go IO.PollStopButton(drv_stop)
-		//go bcast.Transmitter(send_port, bcast_chn)
-		go fsm.FSM(drv_buttons, drv_floors, fsm_chn, elevator_map_chn, motor_direction)
-		//go bcast.Receiver(recieve_port, recieve_chn)
 
 		motor_direction = IO.MD_Down
 		IO.SetMotorDirection(motor_direction)
+
+
+		go fsm.FSM(drv_floors, fsm_chn, elevator_map_chn, motor_direction, msg_buttonEvent, msg_fromHWFloor, msg_fromHWButton, msg_fromFSM, msg_deadElev)
+
+		for {
+			select {
+			case msg := <- msg_fromHWButton:
+				msg_buttonEvent <- msg
+
+			case msg := <- msg_fromNetwork:
+
+			case msg := <- msg_fromFSM:
+
+			default:
+
+			}
+		}
+
+
 
 	    for {
 					fmt.Println("Looping")
