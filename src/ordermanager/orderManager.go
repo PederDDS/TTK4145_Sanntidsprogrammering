@@ -39,7 +39,7 @@ type ElevRequests []Request
 func InitElevMap(backup bool) {
     fmt.Println("func: InitElevMap")
     mapMtx.Lock()
-    localElevMap := new(ElevatorMap)
+    localElevMap = new(ElevatorMap)
 
     if backup {
       *localElevMap = GetBackup()
