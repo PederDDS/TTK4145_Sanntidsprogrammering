@@ -104,8 +104,8 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool){
             //set all values to 1
             if newMap[elev].Buttons[floor][button] == 1 && currentMap[elev].Buttons[floor][button] == 0 {
               if button != def.BT_Cab {
-                for e := 0; e < def.NUMELEVATORS; e++ {
-                  currentMap[elev].Buttons[floor][button] = newMap[elev].Buttons[floor][button]
+                for e := 0; e < def.NUMELEVATORS; e+ {
+                  currentMap[e].Buttons[floor][button] = newMap[e].Buttons[floor][button]
                 }
                 allChangesMade = true
               } else if elev == def.LOCAL_ID {
@@ -116,7 +116,7 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool){
             } else if newMap[elev].Buttons[floor][button] == 2 && currentMap[elev].Buttons[floor][button] != 2 {
               if button != def.BT_Cab {
                 for e := 0; e < def.NUMELEVATORS; e++ {
-                  currentMap[elev].Buttons[floor][button] = newMap[elev].Buttons[floor][button]
+                  currentMap[e].Buttons[floor][button] = newMap[e].Buttons[floor][button]
                 }
                 allChangesMade = true
               } else if elev == def.LOCAL_ID {
@@ -127,7 +127,7 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool){
             } else if newMap[elev].Buttons[floor][button] == 0 && currentMap[elev].Buttons[floor][button] == 2 {
               if button != def.BT_Cab {
                 for e := 0; e < def.NUMELEVATORS; e++ {
-                  currentMap[elev].Buttons[floor][button] = newMap[elev].Buttons[floor][button]
+                  currentMap[e].Buttons[floor][button] = newMap[e].Buttons[floor][button]
                 }
                 allChangesMade = true
               } else if elev == def.LOCAL_ID {

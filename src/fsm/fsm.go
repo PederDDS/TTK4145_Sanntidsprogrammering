@@ -30,7 +30,7 @@ func Initialize(floor_detection <-chan int, fsm_chn chan<- bool, elevator_map_ch
   select{
   case <- floor_detection:
     fmt.Println("Floor detected")
-    motor_direction = IO.MD_Stop
+    motor_direction = IO.MD_Stop{}
     IO.SetMotorDirection(motor_direction)
     elevator_state = def.S_Idle
     time.Sleep(2*time.Second)
@@ -75,13 +75,15 @@ func FSM(drv_buttons <-chan IO.ButtonEvent, drv_floors <-chan int, fsm_chn chan 
         // Check for orders         -> S_Moving
         // If order on floor        -> S_DoorOpen
         // If no orders             -> S_Idle
-        // If unable to initialize  -> S_Init
+
     case def.S_Idle:
         // Check for orders   -> S_Moving
         // If order on floor  -> S_DoorOpen
+
     case def.S_Moving:
-        // Check for orders on passing floors                           -> S_DoorOpen
+      // Check for orders on passing floors                           -> S_DoorOpen
         // If unable to reach floor after a reasonable amount of time   -> S_Dead
+
     case def.S_DoorOpen:
         // Check for orders -> S_Moving
         // If no orders     -> S_Idle
