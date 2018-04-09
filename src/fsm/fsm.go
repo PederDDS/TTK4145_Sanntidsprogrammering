@@ -73,7 +73,7 @@ func FSM(drv_buttons <-chan IO.ButtonEvent, drv_floors <-chan int, fsm_chn chan 
         Initialize(drv_floors, fsm_chn, elevator_map_chn, IO.MD_Up)
         <- fsm_chn
         initialized = true
-        fmt.Println("Elevator is initialized :O")
+        fmt.Println("Elevator is initialized!")
     }
 
 
