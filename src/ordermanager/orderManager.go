@@ -39,7 +39,7 @@ type ElevRequests []Request
 func InitElevMap(backup bool) {
     fmt.Println("func: InitElevMap")
     mapMtx.Lock()
-    localElevMap := new(ElevatorMap)
+    localElevMap = new(ElevatorMap)
 
     if backup {
       *localElevMap = GetBackup()
@@ -47,9 +47,9 @@ func InitElevMap(backup bool) {
       localElevMap = MakeEmptyElevMap()
     }
 
-    fmt.Println("Adresse til kartet: ", &localElevMap)
+    fmt.Println("Adresse til kartet: ", localElevMap)
     MakeBackup(*localElevMap)
-    fmt.Println("Adresse til kartet: ", &localElevMap)
+    fmt.Println("Adresse til kartet: ", localElevMap)
     mapMtx.Unlock()
 }
 
@@ -193,7 +193,7 @@ func GetElevMap() ElevatorMap {
     fmt.Println("func: GetElevMap")
     mapMtx.Lock()
     fmt.Println("Krasj 1")
-    fmt.Println("Adresse til kartet: ", &localElevMap)
+    fmt.Println("Adresse til kartet: ", localElevMap)
     elevMap := *localElevMap
     fmt.Println("Krasj 2")
     mapMtx.Unlock()
@@ -218,6 +218,7 @@ func MakeEmptyElevMap() *ElevatorMap {
         emptyMap[def.LOCAL_ID].Dir = def.MD_Stop
         emptyMap[def.LOCAL_ID].Floor = -1
     }
+    fmt.Println("Adresse til kartet: ", localElevMap)
     return emptyMap
 }
 
