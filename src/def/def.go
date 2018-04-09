@@ -21,20 +21,6 @@ const (
 
 )
 
-type MotorDirection int
-const (
-	MD_Up   MotorDirection = 1
-	MD_Down                = -1
-	MD_Stop                = 0
-)
-
-type ButtonType int
-const (
-	BT_HallUp   ButtonType = 0
-	BT_HallDown            = 1
-	BT_Cab                 = 2
-)
-
 type ElevState int
 const (
 	S_Dead ElevState 	= 0
@@ -48,24 +34,11 @@ const (
 
 
 //structs
-type ButtonEvent struct {
-	Floor 	int
-	Button 	ButtonType
-}
-
 type NewEvent struct {
 	EventType int
 	Type interface{}
 }
 
-type Elev struct {
-	ElevID 		int
-	Dir 		  MotorDirection
-	Floor 		int
-	State 		ElevState
-	Buttons 	[NUMFLOORS][NUMBUTTON_TYPES]int
-	Orders 		[NUMFLOORS][NUMBUTTON_TYPES]int
-}
 
 type MapMessage struct {
 	SendMap 	interface{}
