@@ -56,9 +56,17 @@ func PrintElevMap(){
   for{
       time.Sleep(time.Second)
       for elev := 0; elev < def.NUMELEVATORS; elev++ {
-        fmt.Println("Elevator number: ", localElevMap[elev].ElevID)
-        fmt.Println("Motor direction: ", localElevMap[elev].Dir)
-        fmt.Println("Floor: ", localElevMap[elev].Floor)
+          fmt.Println("-----------------------------------------------")
+          fmt.Println("Elevator number: ", localElevMap[elev].ElevID)
+        switch localElevMap[elev].Dir {
+        case -1:
+          fmt.Println("Motor direction: Down")
+        case 0:
+          fmt.Println("Motor direction: Stop")
+        case 1:
+          fmt.Println("Motor direction: Up")
+        }
+          fmt.Println("Floor: ", localElevMap[elev].Floor)
         switch localElevMap[elev].State {
         case 0:
           fmt.Println("State: Dead")
