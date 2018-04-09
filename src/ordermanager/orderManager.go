@@ -4,6 +4,7 @@ import (
     "fmt"
     "../def"
     "sync"
+    "time"
 )
 
 var mapMtx = &sync.Mutex{}
@@ -49,6 +50,31 @@ func InitElevMap(backup bool) {
 
     MakeBackup(*localElevMap)
     mapMtx.Unlock()
+}
+
+func PrintElevMap(){
+  for{
+      time.Sleep(time.Second)
+      for elev := 0; elev < def.NumElevators; elev++ {
+        fmt.Println("Elevator number: ", localElevMap[elev].ElevID)
+        fmt.Println("Motor direction: ", localElevMap[elev].Dir)
+        fmt.Println("Floor: ", localElevMap[elev].Floor)
+        switch localElevMap[elev].State {
+        case 0:
+          fmt.Println("State: Dead")
+        case 1:
+          fmt.Println("State: Initializing")
+        case 2:
+          fmt.Println("State: Idle")
+        case 3:
+          fmt.Println("State: Moving")
+        case 4:
+          fmt.Println("State: Door open")
+        }
+        fmt.Println("Buttons: " localElevMap[elev].Buttons)
+        fmt.Println("Orders: " localElevMap[elev].Orders)
+      }
+  }
 }
 
 

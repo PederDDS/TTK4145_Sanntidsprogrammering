@@ -53,7 +53,7 @@ func main() {
 
 
 		go fsm.FSM(drv_buttons, drv_floors, fsm_chn, elevator_map_chn, motor_direction, msg_buttonEvent, msg_fromHWFloor, msg_fromHWButton, msg_fromFSM, msg_deadElev)
-
+		go ordermanager.PrintElevMap()
 	    for {
 					fmt.Println("Looping")
 	        select {
@@ -87,7 +87,7 @@ func main() {
 					case message := <- msg_fromFSM:
 						recievedMap := message.SendMap.(ordermanager.ElevatorMap)
 
-						fmt.Println("My state is: ", recievedMap[def.LOCAL_ID].State)
+						currentMap, changeMade := ordermanager.UpdateElevMap(recievedMap)
 
 					//case msg_recieve := <- recieve_chn:
 						//	fmt.Printf("%+v\n", msg_recieve)
