@@ -6,11 +6,11 @@ import (
     "sync"
 )
 
-var mapMtx sync.Mutex
+var mapMtx = &sync.Mutex{}
 var localElevMap *ElevatorMap
 
 //structs and constants
-type ElevatorMap [def.NUMELEVATORS] def.Elev
+type ElevatorMap [def.NUMELEVATORS]def.Elev
 /*
 type CompleteElevMap struct {
     elevMap[NumElevators] elevatorMap
@@ -23,6 +23,7 @@ type BroadcastElevMap struct {
 
 }
 */
+
 type Request int
 const (
     NO_ORDER Request         = 0
@@ -46,7 +47,9 @@ func InitElevMap(backup bool) {
       localElevMap = MakeEmptyElevMap()
     }
 
+    fmt.Println("Adresse til kartet: ", &localElevMap)
     MakeBackup(*localElevMap)
+    fmt.Println("Adresse til kartet: ", &localElevMap)
     mapMtx.Unlock()
 }
 
@@ -104,7 +107,7 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool){
             //set all values to 1
             if newMap[elev].Buttons[floor][button] == 1 && currentMap[elev].Buttons[floor][button] == 0 {
               if button != def.BT_Cab {
-                for e := 0; e < def.NUMELEVATORS; e+ {
+                for e := 0; e < def.NUMELEVATORS; e++ {
                   currentMap[e].Buttons[floor][button] = newMap[e].Buttons[floor][button]
                 }
                 allChangesMade = true
@@ -189,8 +192,12 @@ func SetElevMap(newMap ElevatorMap) {
 func GetElevMap() ElevatorMap {
     fmt.Println("func: GetElevMap")
     mapMtx.Lock()
+    fmt.Println("Krasj 1")
+    fmt.Println("Adresse til kartet: ", &localElevMap)
     elevMap := *localElevMap
+    fmt.Println("Krasj 2")
     mapMtx.Unlock()
+    fmt.Println("Krasj 3")
     return elevMap
 }
 

@@ -37,7 +37,8 @@ func SoftwareBackup() {
 	}
 
 	aliveMessage := true
-
+	fmt.Println("Adresse til kartet (SW backup): ", &localElevMap)
+	
 	for {
 		select {
 		case <-backupTicker.C:
@@ -46,7 +47,6 @@ func SoftwareBackup() {
 		}
 
 	}
-
 }
 
 func GetBackup() ElevatorMap {

@@ -60,14 +60,14 @@ type Elev struct {
 }
 
 type MapMessage struct {
-	sendMap 	interface{}
-	sendEvent 	interface{}
+	SendMap 	interface{}
+	SendEvent 	interface{}
 }
 
 func MakeMapMessage(elevmap interface{}, event interface{}) MapMessage {
 	sendMessage := MapMessage{
-		sendMap: elevmap,
-		sendEvent: event,
+		SendMap: elevmap,
+		SendEvent: event,
 	}
 	return sendMessage
 }

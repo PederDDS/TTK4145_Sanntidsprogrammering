@@ -30,7 +30,7 @@ func Initialize(floor_detection <-chan int, fsm_chn chan<- bool, elevator_map_ch
   select{
   case <- floor_detection:
     fmt.Println("Floor detected")
-    motor_direction = IO.MD_Stop{}
+    motor_direction = IO.MD_Stop
     IO.SetMotorDirection(motor_direction)
     elevator_state = def.S_Idle
     time.Sleep(2*time.Second)
@@ -59,7 +59,16 @@ func PrintState(){
   }
 }
 
-func FSM(drv_buttons <-chan IO.ButtonEvent, drv_floors <-chan int, fsm_chn chan bool, elevator_map_chn chan def.MapMessage, direction IO.MotorDirection) {
+func Dust(msg_fromFSM chan def.MapMessage){
+  fmt.Println("func: Dust")
+  currentMap := ordermanager.GetElevMap()
+  currentMap[def.LOCAL_ID].State = def.S_Dead
+  message := def.MakeMapMessage(currentMap, nil)
+  msg_fromFSM <- message
+}
+
+
+func FSM(drv_buttons <-chan IO.ButtonEvent, drv_floors <-chan int, fsm_chn chan bool, elevator_map_chn chan def.MapMessage, direction IO.MotorDirection, msg_buttonEvent chan def.MapMessage, msg_fromHWFloor chan def.MapMessage, msg_fromHWButton chan def.MapMessage, msg_fromFSM chan def.MapMessage, msg_deadElev chan def.MapMessage) {
     if initialized == false {
         Initialize(drv_floors, fsm_chn, elevator_map_chn, IO.MD_Up)
         <- fsm_chn

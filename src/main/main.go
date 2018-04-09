@@ -52,23 +52,7 @@ func main() {
 		IO.SetMotorDirection(motor_direction)
 
 
-		go fsm.FSM(drv_floors, fsm_chn, elevator_map_chn, motor_direction, msg_buttonEvent, msg_fromHWFloor, msg_fromHWButton, msg_fromFSM, msg_deadElev)
-
-		for {
-			select {
-			case msg := <- msg_fromHWButton:
-				msg_buttonEvent <- msg
-
-			case msg := <- msg_fromNetwork:
-
-			case msg := <- msg_fromFSM:
-
-			default:
-
-			}
-		}
-
-
+		go fsm.FSM(drv_buttons, drv_floors, fsm_chn, elevator_map_chn, motor_direction, msg_buttonEvent, msg_fromHWFloor, msg_fromHWButton, msg_fromFSM, msg_deadElev)
 
 	    for {
 					fmt.Println("Looping")
@@ -88,13 +72,8 @@ func main() {
 	            IO.SetMotorDirection(motor_direction)
 
 
-	        case msg_obstruction := <- drv_obstr:
-	            fmt.Printf("%+v\n", msg_obstruction)
-	            if msg_obstruction {
-	                IO.SetMotorDirection(IO.MD_Stop)
-	            } else {
-	                IO.SetMotorDirection(motor_direction)
-	            }
+	        case <- drv_obstr:
+	            fsm.Dust(msg_fromFSM)
 
 	        case msg_stop := <- drv_stop:
 	            fmt.Printf("%+v\n", msg_stop)
@@ -104,9 +83,34 @@ func main() {
 									}
 							}
 
+
+					case message := <- msg_fromFSM:
+						recievedMap := message.SendMap.(ordermanager.ElevatorMap)
+
+						fmt.Println("My state is: ", recievedMap[def.LOCAL_ID].State)
+
 					//case msg_recieve := <- recieve_chn:
 						//	fmt.Printf("%+v\n", msg_recieve)
 
 	        }
 	    }
+
+			for {
+				select {
+				case msg := <- msg_fromHWButton:
+					msg_buttonEvent <- msg
+
+				case msg := <- msg_fromNetwork:
+					msg_fromNetwork <- msg
+					msg_toNetwork <- msg
+
+				case msg := <- msg_fromFSM:
+					msg_fromFSM	<- msg
+					msg_toHW <- msg
+
+				default:
+
+
+				}
+			}
 	}
