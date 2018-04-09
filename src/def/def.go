@@ -12,6 +12,9 @@ const (
 	BUTTON_PUSHED 		= 2
 	DOOR_TIMEOUT 		= 3
 
+	DOOR_TIMEOUT_TIME = 1
+	IDLE_TIMEOUT_TIME = 10
+
 	BACKUP_IP 			= "	127.0.0.1:30000" //to be decided
 	BACKUP_PORT 		= ":30000"
 	LOCAL_ID 			= 0
@@ -48,6 +51,11 @@ const (
 type ButtonEvent struct {
 	Floor 	int
 	Button 	ButtonType
+}
+
+type NewEvent struct {
+	EventType int
+	Type interface{}
 }
 
 type Elev struct {

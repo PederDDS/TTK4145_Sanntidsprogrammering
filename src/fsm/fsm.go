@@ -100,9 +100,45 @@ func FSM(drv_buttons <-chan IO.ButtonEvent, drv_floors <-chan int, fsm_chn chan 
 }
 
 
-//func ChooseDirection() int {
-// return 0
-//}
+func FSM(drv_buttons <-chan IO.ButtonEvent, drv_floors <-chan int, fsm_chn chan bool, elevator_map_chn chan def.MapMessage, direction IO.MotorDirection, msg_buttonEvent chan def.MapMessage, msg_fromHWFloor chan def.MapMessage, msg_fromHWButton chan def.MapMessage, msg_fromFSM chan def.MapMessage, msg_deadElev chan def.MapMessage) {
+    if initialized == false {
+        Initialize(drv_floors, fsm_chn, elevator_map_chn, IO.MD_Up)
+        <- fsm_chn
+        initialized = true
+        fmt.Println("Elevator is initialized :O")
+    }
+
+
+    doorTimer := time.NewTimer(def.DOOR_TIMEOUT_TIME*time.Second)
+    doorTimer.Stop()
+    idleTimer := time.NewTimer(IDLE_TIMEOUT_TIME*time.Second)
+
+    for {
+      select {
+      case msg := <- msg_fromHWFloor:
+          switch msg.SendEvent.(def.NewEvent).EventType {
+          case def.FLOOR_ARRIVAL:
+            FloorArrival(msg_fromFSM, msg.SendEvent.(def.NewEvent).Type.(int), doorTimer)
+            idleTimer.Reset(IDLE_TIMEOUT_TIME*time.Second)
+          }
+
+      case msg := <- msg_buttonEvent:
+          // Check for orders         -> S_Moving
+          // If order on floor        -> S_DoorOpen
+          // If no orders             -> S_Idle
+
+      case msg := msg_deadElev:
+          // Check for orders   -> S_Moving
+          // If order on floor  -> S_DoorOpen
+
+      default:
+    }
+  }
+}
+
+func ChooseDirection() int {
+  return 0
+}
 
 
 func OrderAbove(currentMap ordermanager.ElevatorMap) bool {
@@ -156,4 +192,29 @@ func IsOrderOnFloor(currentMap ordermanager.ElevatorMap, currentFloor int) bool 
     }
   }
   return false
+}
+
+
+func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *time.Timer) {
+
+}
+
+
+func DeadElevator(msg_fromFSM chan def.MapMessage, deadElevID int) {
+
+}
+
+
+func ButtonPushed(msg_fromFSM chan def.MapMessage, floor int, button int, doorTimer *time.Timer) {
+
+}
+
+
+func DoorTimeout(msg_fromFSM chan def.MapMessage) {
+
+}
+
+
+func PossibleStopOnFloor(currentMap ordermanager.ElevatorMap) bool {
+
 }
