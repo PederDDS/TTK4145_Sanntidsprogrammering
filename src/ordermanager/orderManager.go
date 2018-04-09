@@ -55,7 +55,7 @@ func InitElevMap(backup bool) {
 func PrintElevMap(){
   for{
       time.Sleep(time.Second)
-      for elev := 0; elev < def.NumElevators; elev++ {
+      for elev := 0; elev < def.NUMELEVATORS; elev++ {
         fmt.Println("Elevator number: ", localElevMap[elev].ElevID)
         fmt.Println("Motor direction: ", localElevMap[elev].Dir)
         fmt.Println("Floor: ", localElevMap[elev].Floor)
@@ -71,8 +71,8 @@ func PrintElevMap(){
         case 4:
           fmt.Println("State: Door open")
         }
-        fmt.Println("Buttons: " localElevMap[elev].Buttons)
-        fmt.Println("Orders: " localElevMap[elev].Orders)
+        fmt.Println("Buttons: ", localElevMap[elev].Buttons)
+        fmt.Println("Orders: ", localElevMap[elev].Orders)
       }
   }
 }

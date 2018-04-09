@@ -83,12 +83,6 @@ func main() {
 									}
 							}
 
-
-					case message := <- msg_fromFSM:
-						recievedMap := message.SendMap.(ordermanager.ElevatorMap)
-
-						currentMap, changeMade := ordermanager.UpdateElevMap(recievedMap)
-
 					//case msg_recieve := <- recieve_chn:
 						//	fmt.Printf("%+v\n", msg_recieve)
 
