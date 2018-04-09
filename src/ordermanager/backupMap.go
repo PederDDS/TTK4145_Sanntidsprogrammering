@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"../IO"
 )
 
 func SoftwareBackup() {
@@ -83,7 +84,7 @@ func GetBackup() ElevatorMap {
 		}
 		dir, _ := strconv.Atoi(stringMap[elevator*(5+def.NUMFLOORS)+def.NUMFLOORS+1][0])
 		state, _ := strconv.Atoi(stringMap[elevator*(5+def.NUMFLOORS)+def.NUMFLOORS+3][0])
-		backupMap[elevator].Dir = def.MotorDirection(dir)
+		backupMap[elevator].Dir = IO.MotorDirection(dir)
 		backupMap[elevator].Floor, _ = strconv.Atoi(stringMap[elevator*(5+def.NUMFLOORS)+def.NUMFLOORS+2][0])
 		backupMap[elevator].State = def.ElevState(state)
 
