@@ -66,7 +66,8 @@ func PrintElevMap(){
       // Husk å endre 1 tilbake til def.NUMELEVATORS!!
       for elev := 0; elev < 1; elev++ {
           fmt.Println("-----------------------------------------------")
-          fmt.Println("Elevator number: ", localElevMap[elev].ElevID)
+          fmt.Println("Elevator number:", localElevMap[elev].ElevID)
+
         switch localElevMap[elev].Dir {
         case -1:
           fmt.Println("Motor direction: Down")
@@ -75,7 +76,18 @@ func PrintElevMap(){
         case 1:
           fmt.Println("Motor direction: Up")
         }
-          fmt.Println("Floor: ", localElevMap[elev].Floor)
+
+        switch localElevMap[elev].Floor {
+        case 0:
+          fmt.Println("Floor: 1st")
+        case 1:
+          fmt.Println("Floor: 2nd")
+        case 2:
+          fmt.Println("Floor: 3rd")
+        default:
+          fmt.Print("Floor: ", localElevMap[elev].Floor + 1, "th\n")
+        }
+
         switch localElevMap[elev].State {
         case 0:
           fmt.Println("State: Dead")
@@ -88,16 +100,16 @@ func PrintElevMap(){
         case 4:
           fmt.Println("State: Door open")
         }
-        fmt.Println("Buttons:     U D C")
-        fmt.Println("4th floor: ", localElevMap[elev].Buttons[3])
-        fmt.Println("3rd floor: ", localElevMap[elev].Buttons[2])
-        fmt.Println("2nd floor: ", localElevMap[elev].Buttons[1])
-        fmt.Println("1st floor: ", localElevMap[elev].Buttons[0])
-        fmt.Println("Orders:      U D C")
-        fmt.Println("4th floor: ", localElevMap[elev].Orders[3])
-        fmt.Println("3rd floor: ", localElevMap[elev].Orders[2])
-        fmt.Println("2nd floor: ", localElevMap[elev].Orders[1])
-        fmt.Println("1st floor: ", localElevMap[elev].Orders[0])
+        fmt.Println("Buttons:    U D C")
+        fmt.Println("4th floor:", localElevMap[elev].Buttons[3])
+        fmt.Println("3rd floor:", localElevMap[elev].Buttons[2])
+        fmt.Println("2nd floor:", localElevMap[elev].Buttons[1])
+        fmt.Println("1st floor:", localElevMap[elev].Buttons[0])
+        fmt.Println("Orders:     U D C")
+        fmt.Println("4th floor:", localElevMap[elev].Orders[3])
+        fmt.Println("3rd floor:", localElevMap[elev].Orders[2])
+        fmt.Println("2nd floor:", localElevMap[elev].Orders[1])
+        fmt.Println("1st floor:", localElevMap[elev].Orders[0])
       }
 }
 
