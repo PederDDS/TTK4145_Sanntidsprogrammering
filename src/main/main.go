@@ -11,7 +11,7 @@ import (
 	// "flag"
 	"fmt"
 	//"os"
-	//"time"
+	"time"
 )
 
 func main() {
@@ -49,15 +49,19 @@ func main() {
 	  go IO.PollStopButton(drv_stop)
 
 		motor_direction = IO.MD_Down
-		
+
 		go fsm.FSM(drv_buttons, drv_floors, fsm_chn, elevator_map_chn, motor_direction, msg_buttonEvent, msg_fromHWFloor, msg_fromHWButton, msg_fromFSM, msg_deadElev)
 
+		transmitTicker := time.NewTicker(100 * time.Millisecond)
+
 		currentMap := ordermanager.GetElevMap()
+		var newMsg def.MapMessage
+		transmitFlag := false
 	    for {
-					fmt.Println("Looping")
-					currentMap = ordermanager.GetElevMap()
+
 	        select {
 	        case msg_button := <- drv_buttons:
+						currentMap = ordermanager.GetElevMap()
 							currentMap[def.LOCAL_ID].Buttons[msg_button.Floor][msg_button.Button] = 1
 							sendMessage := def.MakeMapMessage(currentMap, nil)
 							newMap, _ := ordermanager.UpdateElevMap(sendMessage.SendMap.(ordermanager.ElevatorMap))
@@ -66,6 +70,7 @@ func main() {
 							//bcast_chn <- msg_button
 
 	        case msg_floor := <- drv_floors:
+						currentMap = ordermanager.GetElevMap()
 	            if msg_floor == def.NUMFLOORS-1 {
 	                motor_direction = IO.MD_Down
 	            } else if msg_floor == 0 {
@@ -102,16 +107,40 @@ func main() {
 					msg_buttonEvent <- msg
 
 				case msg := <- msg_fromNetwork:
-					msg_fromNetwork <- msg
-					msg_toNetwork <- msg
+					recievedMap := msg.SendMap.(ordermanager.ElevatorMap)
+					currentMap, buttonPushes := ordermanager.GetNewEvent(recievedMap)
+
+					newMsg = def.MakeMapMessage(currentMap, nil)
+					msg_toHW <- newMsg
+
+					for _, push := range buttonPushes {
+						fsmEvent := def.NewEvent{def.BUTTON_PUSHED, []int{push[0], push[1]}}
+
+						newMsg = def.MakeMapMessage(currentMap, fsmEvent)
+
+						msg_buttonEvent <- newMsg
+					}
 
 				case msg := <- msg_fromFSM:
-					msg_fromFSM	<- msg
-					msg_toHW <- msg
+					recievedMap := msg.SendMap.(ordermanager.ElevatorMap)
+					currentMap, changeMade := ordermanager.UpdateElevMap(recievedMap)
 
-				default:
+					newMsg = def.MakeMapMessage(currentMap, nil)
+					msg_toHW <- newMsg
 
+					if changeMade {
+						transmitFlag = true
+					}
+				}
 
+				select {
+				case <- transmitTicker.C:
+					if transmitFlag{
+						if newMsg.SendMap != nil {
+							msg_toNetwork <- newMsg
+							transmitFlag = false
+						}
+					}
 				}
 			}
 	}
