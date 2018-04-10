@@ -58,10 +58,10 @@ func main() {
 		var newMsg def.MapMessage
 		transmitFlag := false
 	    for {
-					fmt.Println("Looping")
-					currentMap = ordermanager.GetElevMap()
+
 	        select {
 	        case msg_button := <- drv_buttons:
+						currentMap = ordermanager.GetElevMap()
 							currentMap[def.LOCAL_ID].Buttons[msg_button.Floor][msg_button.Button] = 1
 							sendMessage := def.MakeMapMessage(currentMap, nil)
 							newMap, _ := ordermanager.UpdateElevMap(sendMessage.SendMap.(ordermanager.ElevatorMap))
@@ -70,6 +70,7 @@ func main() {
 							//bcast_chn <- msg_button
 
 	        case msg_floor := <- drv_floors:
+						currentMap = ordermanager.GetElevMap()
 	            if msg_floor == def.NUMFLOORS-1 {
 	                motor_direction = IO.MD_Down
 	            } else if msg_floor == 0 {
