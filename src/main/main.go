@@ -49,10 +49,14 @@ func main() {
 	  go IO.PollStopButton(drv_stop)
 
 		motor_direction = IO.MD_Down
-		
+
 		go fsm.FSM(drv_buttons, drv_floors, fsm_chn, elevator_map_chn, motor_direction, msg_buttonEvent, msg_fromHWFloor, msg_fromHWButton, msg_fromFSM, msg_deadElev)
 
+		transmitTicker := time.NewTicker(100 * time.Millisecond)
+
 		currentMap := ordermanager.GetElevMap()
+		var newMsg def.MapMessage
+
 	    for {
 					fmt.Println("Looping")
 					currentMap = ordermanager.GetElevMap()
@@ -102,16 +106,40 @@ func main() {
 					msg_buttonEvent <- msg
 
 				case msg := <- msg_fromNetwork:
-					msg_fromNetwork <- msg
-					msg_toNetwork <- msg
+					recievedMap := msg.SendMap.(ordermanager.ElevatorMap)
+					currentMap, buttonPushes := ordermanager.GetNewEvent(recievedMap)
+
+					newMsg = def.MakeMapMessage(currentMap, nil)
+					msg_toHW <- newMsg
+
+					for _, push := range buttonPushes {
+						fsmEvent := def.NewEvent{def.BUTTON_PUSHED, []int{push[0], push[1]}}
+
+						newMsg = def.MakeMapMessage(currentMap, fsmEvent)
+
+						msg_buttonEvent <- newMsg
+					}
 
 				case msg := <- msg_fromFSM:
-					msg_fromFSM	<- msg
-					msg_toHW <- msg
+					recievedMap := msg.SendMap.(ordermanager.ElevatorMap)
+					currentMap, changeMade := ordermanager.UpdateElevMap(recievedMap)
 
-				default:
+					newMsg = def.MakeMapMessage(currentMap, nil)
+					msg_toHW <- newMsg
 
+					if changeMade {
+						transmitFlag = true
+					}
+				}
 
+				select {
+				case <- transmitTicker.C:
+					if transmitFlag{
+						if newMsg.SendMap != nil {
+							msg_toNetwork <- newMsg
+							transmitFlag = false
+						}
+					}
 				}
 			}
 	}

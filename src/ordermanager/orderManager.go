@@ -217,7 +217,7 @@ func GetNewEvent(newMap ElevatorMap) (ElevatorMap, [][]int) {
   var buttonChanges [][]int
 
   for elev := 0; elev < def.NUMELEVATORS; elev++ {
-    if currentMap[def.LOCAL_ID].State != def.S_Dead && newMap[def.LOCAL_ID].State != def.S_Dead {
+    if currentMap[def.LOCAL_ID].State != def.S_Dead && currentMap[def.LOCAL_ID].State != def.S_Init && newMap[def.LOCAL_ID].State != def.S_Dead && newMap[def.LOCAL_ID].State != def.S_Init {
 
       for floor := 0; floor < def.NUMFLOORS; floor++ {
         for button := 0; button < def.NUMBUTTON_TYPES; button++ {
