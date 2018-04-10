@@ -21,18 +21,35 @@ func timer(timeout chan<- bool){
 }
 
 func Initialize(floor_detection <-chan int, fsm_chn chan<- bool, elevator_map_chn chan<- def.MapMessage, direction IO.MotorDirection){
+  currentMap := ordermanager.GetElevMap()
+
   timeout := make(chan bool, 1)
   elevator_state = def.S_Init
   motor_direction = direction
-  //sendMessage := def.MakeMapMessage(nil, motor_direction)
+  currentMap[def.LOCAL_ID].Dir = motor_direction
+  sendMessage := def.MakeMapMessage(currentMap, nil)
+
+  newMap, _ := ordermanager.UpdateElevMap(sendMessage.SendMap.(ordermanager.ElevatorMap))
   IO.SetMotorDirection(motor_direction)
   go timer(timeout)
+  newMap[1].Dir = 0 // fordi newMap is declared and not used...
+
   select{
   case <- floor_detection:
     fmt.Println("Floor detected")
     motor_direction = IO.MD_Stop
+    sendMessage = def.MakeMapMessage(nil, motor_direction)
+    currentMap[def.LOCAL_ID].Dir = motor_direction
+    sendMessage := def.MakeMapMessage(currentMap, nil)
+
+    newMap, _ := ordermanager.UpdateElevMap(sendMessage.SendMap.(ordermanager.ElevatorMap))
+    newMap[1].Dir = 0 // fordi newMap is declared and not used...
     IO.SetMotorDirection(motor_direction)
     elevator_state = def.S_Idle
+    currentMap[def.LOCAL_ID].State = elevator_state
+    sendMessage = def.MakeMapMessage(currentMap, nil)
+
+    newMap, _ = ordermanager.UpdateElevMap(sendMessage.SendMap.(ordermanager.ElevatorMap))
     time.Sleep(2*time.Second)
     fsm_chn <- true
   case <- timeout:
@@ -51,6 +68,7 @@ func Dust(msg_fromFSM chan def.MapMessage){
 
 
 func FSM(drv_buttons <-chan IO.ButtonEvent, drv_floors <-chan int, fsm_chn chan bool, elevator_map_chn chan def.MapMessage, direction IO.MotorDirection, msg_buttonEvent chan def.MapMessage, msg_fromHWFloor chan def.MapMessage, msg_fromHWButton chan def.MapMessage, msg_fromFSM chan def.MapMessage, msg_deadElev chan def.MapMessage) {
+
     if initialized == false {
         Initialize(drv_floors, fsm_chn, elevator_map_chn, IO.MD_Up)
         <- fsm_chn

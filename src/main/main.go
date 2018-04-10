@@ -53,9 +53,11 @@ func main() {
 
 
 		go fsm.FSM(drv_buttons, drv_floors, fsm_chn, elevator_map_chn, motor_direction, msg_buttonEvent, msg_fromHWFloor, msg_fromHWButton, msg_fromFSM, msg_deadElev)
-		go ordermanager.PrintElevMap()
+
+		currentMap := ordermanager.GetElevMap()
 	    for {
 					fmt.Println("Looping")
+					currentMap = ordermanager.GetElevMap()
 	        select {
 	        case msg_button := <- drv_buttons:
 	            fmt.Printf("%+v\n", msg_button)
@@ -63,12 +65,15 @@ func main() {
 							//bcast_chn <- msg_button
 
 	        case msg_floor := <- drv_floors:
-	            fmt.Printf("%+v\n", msg_floor)
 	            if msg_floor == def.NUMFLOORS-1 {
 	                motor_direction = IO.MD_Down
 	            } else if msg_floor == 0 {
 	                motor_direction = IO.MD_Up
 	            }
+							currentMap[def.LOCAL_ID].Dir = motor_direction
+						  sendMessage := def.MakeMapMessage(currentMap, nil)
+						  newMap, _ := ordermanager.UpdateElevMap(sendMessage.SendMap.(ordermanager.ElevatorMap))
+							newMap[1].Dir = 0 // fordi newMap is declared and not used...
 	            IO.SetMotorDirection(motor_direction)
 
 

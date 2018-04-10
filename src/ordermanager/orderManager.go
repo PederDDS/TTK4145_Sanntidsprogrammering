@@ -4,11 +4,7 @@ import (
     "fmt"
     "../def"
     "sync"
-<<<<<<< HEAD
-    "time"
-=======
     "../IO"
->>>>>>> Jen
 )
 
 var mapMtx = &sync.Mutex{}
@@ -66,9 +62,8 @@ func InitElevMap(backup bool) {
 }
 
 func PrintElevMap(){
-  for{
-      time.Sleep(time.Second)
-      for elev := 0; elev < def.NUMELEVATORS; elev++ {
+      // Husk å endre 1 tilbake til def.NUMELEVATORS!!
+      for elev := 0; elev < 1; elev++ {
           fmt.Println("-----------------------------------------------")
           fmt.Println("Elevator number: ", localElevMap[elev].ElevID)
         switch localElevMap[elev].Dir {
@@ -103,7 +98,6 @@ func PrintElevMap(){
         fmt.Println("2nd floor: ", localElevMap[elev].Orders[1])
         fmt.Println("1st floor: ", localElevMap[elev].Orders[0])
       }
-  }
 }
 
 
@@ -199,6 +193,7 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool){
     MakeBackup(currentMap)
     SetElevMap(currentMap)
 
+    PrintElevMap()
     return currentMap, allChangesMade
 }
 
@@ -267,7 +262,6 @@ func MakeEmptyElevMap() *ElevatorMap {
         emptyMap[def.LOCAL_ID].Dir = IO.MD_Stop
         emptyMap[def.LOCAL_ID].Floor = -1
     }
-    fmt.Println("Adresse til kartet: ", localElevMap)
     return emptyMap
 }
 
