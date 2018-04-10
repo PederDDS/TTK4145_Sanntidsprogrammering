@@ -60,7 +60,10 @@ func main() {
 					currentMap = ordermanager.GetElevMap()
 	        select {
 	        case msg_button := <- drv_buttons:
-	            fmt.Printf("%+v\n", msg_button)
+							currentMap[def.LOCAL_ID].Buttons[msg_button.Floor][msg_button.Button] = 1
+							sendMessage := def.MakeMapMessage(currentMap, nil)
+							newMap, _ := ordermanager.UpdateElevMap(sendMessage.SendMap.(ordermanager.ElevatorMap))
+							newMap[1].Dir = 0 // fordi newMap is declared and not used...
 	            IO.SetButtonLamp(msg_button.Button, msg_button.Floor, true)
 							//bcast_chn <- msg_button
 
@@ -71,6 +74,7 @@ func main() {
 	                motor_direction = IO.MD_Up
 	            }
 							currentMap[def.LOCAL_ID].Dir = motor_direction
+							currentMap[def.LOCAL_ID].Floor = msg_floor
 						  sendMessage := def.MakeMapMessage(currentMap, nil)
 						  newMap, _ := ordermanager.UpdateElevMap(sendMessage.SendMap.(ordermanager.ElevatorMap))
 							newMap[1].Dir = 0 // fordi newMap is declared and not used...
