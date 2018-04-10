@@ -49,9 +49,7 @@ func main() {
 	  go IO.PollStopButton(drv_stop)
 
 		motor_direction = IO.MD_Down
-		IO.SetMotorDirection(motor_direction)
-
-
+		
 		go fsm.FSM(drv_buttons, drv_floors, fsm_chn, elevator_map_chn, motor_direction, msg_buttonEvent, msg_fromHWFloor, msg_fromHWButton, msg_fromFSM, msg_deadElev)
 
 		currentMap := ordermanager.GetElevMap()

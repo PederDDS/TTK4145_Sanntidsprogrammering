@@ -25,6 +25,7 @@ func Initialize(floor_detection <-chan int, fsm_chn chan<- bool, elevator_map_ch
 
   timeout := make(chan bool, 1)
   elevator_state = def.S_Init
+  currentMap[def.LOCAL_ID].State = elevator_state
   motor_direction = direction
   currentMap[def.LOCAL_ID].Dir = motor_direction
   sendMessage := def.MakeMapMessage(currentMap, nil)

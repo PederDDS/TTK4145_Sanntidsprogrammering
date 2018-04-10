@@ -268,13 +268,14 @@ func MakeEmptyElevMap() *ElevatorMap {
         for floor := 0; floor < def.NUMFLOORS; floor++ {
             for button := 0; button < def.NUMBUTTON_TYPES; button++ {
                 emptyMap[elev].Buttons[floor][button] = 0
-                emptyMap[elev].Orders[floor][button] = 0
+                emptyMap[elev].Orders[floor][button] = ORDER_IMPOSSIBLE
             }
         }
-        emptyMap[def.LOCAL_ID].State = def.S_Idle
+        emptyMap[def.LOCAL_ID].State = def.S_Dead
         emptyMap[def.LOCAL_ID].Dir = IO.MD_Stop
         emptyMap[def.LOCAL_ID].Floor = -1
     }
+    PrintElevMap()
     return emptyMap
 }
 
