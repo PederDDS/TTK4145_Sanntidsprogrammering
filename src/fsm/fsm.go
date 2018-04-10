@@ -114,11 +114,73 @@ func FSM(drv_buttons <-chan IO.ButtonEvent, drv_floors <-chan int, fsm_chn chan 
 
 
 func ChooseDirection(currentMap ordermanager.ElevatorMap) IO.MotorDirection {
+  currentFloor := currentMap[def.LOCAL_ID].Floor
+
+  if currentMap[def.LOCAL_ID].Buttons[currentFloor][IO.BT_Cab] == 1 {
+    return IO.MD_Stop
+  }
+
   switch motor_direction {
   case IO.MD_Up:
-    return IO.MD_Up
+    if currentMap[def.LOCAL_ID].Floor != def.NUMFLOORS {
+      for floor := currentMap[def.LOCAL_ID].Floor+1; floor < def.NUMFLOORS; floor++ {
+        if IsOrderOnFloor(currentMap, floor) && (currentMap[def.LOCAL_ID].Buttons[floor][IO.BT_Cab] == 1 || ordermanager.IsClosestElevator(currentMap, floor)){
+          return IO.MD_Up
+        }
+      }
+    }
+
+    if currentMap[def.LOCAL_ID].Floor != 0 {
+      for floor := currentMap[def.LOCAL_ID].Floor-1; floor > -1; floor-- {
+        if IsOrderOnFloor(currentMap, floor) && (currentMap[def.LOCAL_ID].Buttons[floor][IO.BT_Cab] == 1 || ordermanager.IsClosestElevator(currentMap, floor)){
+          return IO.MD_Down
+        }
+      }
+    }
+
+    return IO.MD_Stop
+
+  case IO.MD_Stop:
+    if currentMap[def.LOCAL_ID].Floor != 0 {
+      for floor := currentMap[def.LOCAL_ID].Floor-1; floor > -1; floor-- {
+        if IsOrderOnFloor(currentMap, floor) && (currentMap[def.LOCAL_ID].Buttons[floor][IO.BT_Cab] == 1 || ordermanager.IsClosestElevator(currentMap, floor)){
+          return IO.MD_Down
+        }
+      }
+    }
+
+    if currentMap[def.LOCAL_ID].Floor != def.NUMFLOORS {
+      for floor := currentMap[def.LOCAL_ID].Floor+1; floor < def.NUMFLOORS; floor++ {
+        if IsOrderOnFloor(currentMap, floor) && (currentMap[def.LOCAL_ID].Buttons[floor][IO.BT_Cab] == 1 || ordermanager.IsClosestElevator(currentMap, floor)){
+          return IO.MD_Up
+        }
+      }
+    }
+
+    return IO.MD_Stop
+
+  case IO.MD_Down:
+    if currentMap[def.LOCAL_ID].Floor != def.NUMFLOORS {
+      for floor := currentMap[def.LOCAL_ID].Floor+1; floor < def.NUMFLOORS; floor++ {
+        if IsOrderOnFloor(currentMap, floor) && (currentMap[def.LOCAL_ID].Buttons[floor][IO.BT_Cab] == 1 || ordermanager.IsClosestElevator(currentMap, floor)){
+          return IO.MD_Up
+        }
+      }
+    }
+
+    if currentMap[def.LOCAL_ID].Floor != 0 {
+      for floor := currentMap[def.LOCAL_ID].Floor-1; floor > -1; floor-- {
+        if IsOrderOnFloor(currentMap, floor) && (currentMap[def.LOCAL_ID].Buttons[floor][IO.BT_Cab] == 1 || ordermanager.IsClosestElevator(currentMap, floor)){
+          return IO.MD_Down
+        }
+      }
+    }
+
+    return IO.MD_Stop
+
+  default:
+    return IO.MD_Stop
   }
-  return IO.MD_Down
 }
 
 
@@ -186,7 +248,7 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
     msg_fromFSM <- sendMsg
 
   case def.S_Moving:
-    if PossibleStopOnFloor(currentMap) {
+    if PossibleStop(currentMap) {
       IO.SetMotorDirection(IO.MD_Stop)
       IO.SetDoorOpenLamp(true)
       IO.SetFloorIndicator(arrivalFloor)
@@ -207,12 +269,80 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
 
 
 func DeadElevator(msg_fromFSM chan def.MapMessage, deadElevID int) {
+  currentMap := ordermanager.GetElevMap()
+  currentMap[deadElevID].State = def.S_Dead
 
+  switch elevator_state {
+  case def.S_Idle:
+    motor_direction = ChooseDirection(currentMap)
+    IO.SetMotorDirection(motor_direction)
+    currentMap[def.LOCAL_ID].Dir = motor_direction
+
+    if motor_direction != IO.MD_Stop {
+      elevator_state = def.S_Moving
+    }
+
+  }
+  currentMap[def.LOCAL_ID].State = elevator_state
+  SendMapMessage(msg_fromFSM, currentMap, nil)
 }
 
 
 func ButtonPushed(msg_fromFSM chan def.MapMessage, floor int, button int, doorTimer *time.Timer) {
+  currentMap := ordermanager.GetElevMap()
 
+  switch elevator_state {
+  case def.S_Idle:
+    if currentMap[def.LOCAL_ID].Floor == floor {
+      currentMap = DeleteOrdersOnFloor(currentMap, floor)
+
+      IO.SetDoorOpenLamp(true)
+      doorTimer.Reset(def.DOOR_TIMEOUT_TIME*time.Second)
+
+      elevator_state = def.S_DoorOpen
+
+      currentMap[def.LOCAL_ID].State = elevator_state
+      SendMapMessage(msg_fromFSM, currentMap, nil)
+
+    } else {
+      currentMap[def.LOCAL_ID].Buttons[floor][button] = 1
+
+      motor_direction = ChooseDirection(currentMap)
+      IO.SetMotorDirection(motor_direction)
+
+      if motor_direction != IO.MD_Stop {
+        elevator_state = def.S_Moving
+      }
+
+      currentMap[def.LOCAL_ID].State = def.S_DoorOpen
+      currentMap[def.LOCAL_ID].Dir = motor_direction
+      SendMapMessage(msg_fromFSM, currentMap, nil)
+    }
+
+  case def.S_DoorOpen:
+    if currentMap[def.LOCAL_ID].Floor == floor{
+      currentMap = DeleteOrdersOnFloor(currentMap, floor)
+      doorTimer.Reset(def.DOOR_TIMEOUT_TIME*time.Second)
+
+      SendMapMessage(msg_fromFSM, currentMap, nil)
+    } else {
+      if currentMap[def.LOCAL_ID].Buttons[floor][button] != 1 {
+        currentMap[def.LOCAL_ID].Buttons[floor][button] = 1
+
+        SendMapMessage(msg_fromFSM, currentMap, nil)
+      }
+    }
+
+  case def.S_Moving:
+    if currentMap[def.LOCAL_ID].Buttons[floor][button] != 1 {
+      currentMap[def.LOCAL_ID].Buttons[floor][button] = 1
+
+      SendMapMessage(msg_fromFSM, currentMap, nil)
+    }
+
+  default:
+
+  }
 }
 
 
@@ -232,24 +362,46 @@ func DoorTimeout(msg_fromFSM chan def.MapMessage){
       elevator_state = def.S_Moving
     }
 
+    currentMap[def.LOCAL_ID].State = elevator_state
     SendMapMessage(msg_fromFSM, currentMap, nil)
   }
 }
 
 
-func PossibleStopOnFloor(currentMap ordermanager.ElevatorMap) bool {
+func PossibleStop(currentMap ordermanager.ElevatorMap) bool {
   floor := currentMap[def.LOCAL_ID].Floor
+
   switch motor_direction {
   case IO.MD_Up:
-    if currentMap[def.LOCAL_ID].Buttons[floor][IO.BT_HallUp] == 1 {
+    if currentMap[def.LOCAL_ID].Buttons[floor][IO.BT_Cab] == 1 || currentMap[def.LOCAL_ID].Buttons[floor][IO.BT_HallUp] == 1 {
+      return true
+    } else if currentMap[def.LOCAL_ID].Buttons[floor][IO.BT_HallDown] == 1 && OrderBelow(currentMap) {
+      return true
+    } else if floor == def.NUMFLOORS {
+      return true
+    } else if OrderBelow(currentMap){
       return true
     }
+
+  case IO.MD_Down:
+    if currentMap[def.LOCAL_ID].Buttons[floor][IO.BT_Cab] == 1 || currentMap[def.LOCAL_ID].Buttons[floor][IO.BT_HallDown] == 1 {
+      return true
+    } else if currentMap[def.LOCAL_ID].Buttons[floor][IO.BT_HallUp] == 1 && OrderAbove(currentMap) {
+      return true
+    } else if floor == 0 {
+      return true
+    } else if OrderAbove(currentMap){
+      return true
+    }
+
+  default:
+    return false
   }
   return false
 }
 
 
-func SendMapMessage(msg_fromFSM chan def.MapMessage, newMap interface{}, newEvent interface{} ) {
+func SendMapMessage(msg_fromFSM chan def.MapMessage, newMap interface{}, newEvent interface{}) {
   sendMsg := def.MakeMapMessage(newMap, nil)
   msg_fromFSM <- sendMsg
 }
