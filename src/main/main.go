@@ -11,7 +11,7 @@ import (
 	// "flag"
 	"fmt"
 	//"os"
-	//"time"
+	"time"
 )
 
 func main() {
@@ -56,7 +56,7 @@ func main() {
 
 		currentMap := ordermanager.GetElevMap()
 		var newMsg def.MapMessage
-
+		transmitFlag := false
 	    for {
 					fmt.Println("Looping")
 					currentMap = ordermanager.GetElevMap()
