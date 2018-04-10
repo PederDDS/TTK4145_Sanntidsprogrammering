@@ -5,6 +5,7 @@ import (
     "../def"
     "sync"
     "../IO"
+    "math"
 )
 
 var mapMtx = &sync.Mutex{}
@@ -102,7 +103,7 @@ func PrintElevMap(){
 
 
 func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool){
-    fmt.Println("UpdateElevMap")
+    fmt.Println("func: UpdateElevMap")
     currentMap := GetElevMap()
     allChangesMade := false
 
@@ -266,7 +267,62 @@ func MakeEmptyElevMap() *ElevatorMap {
 }
 
 
-func isClosestElevator() bool {
-  fmt.Println("func: isClosestElevator")
-  return false
+func IsClosestElevator(currentMap ElevatorMap, floor int) bool {
+  fmt.Println("func: IsClosestElevator")
+  result := true
+  myDistance := int(math.Abs(float64(currentMap[def.LOCAL_ID].Floor - floor)))
+
+  if currentMap[def.LOCAL_ID].Floor < floor {
+
+		for elev := 0; elev < def.NUMELEVATORS; elev++ {
+
+			if elev != def.LOCAL_ID && (currentMap[elev].State != def.S_Dead || currentMap[elev].State != def.S_Init) {
+
+				elevDistance := int(math.Abs(float64(currentMap[elev].Floor - floor)))
+
+				if elevDistance < myDistance {
+
+					if currentMap[elev].Floor < floor && (currentMap[elev].Dir == IO.MD_Up || currentMap[elev].Dir == IO.MD_Stop) {
+						result = false
+					} else if currentMap[elev].Floor > floor && (currentMap[elev].Dir == IO.MD_Down || currentMap[elev].Dir == IO.MD_Stop) {
+						result = false
+					} else if currentMap[elev].Floor == floor && currentMap[elev].Dir == IO.MD_Stop {
+						result = false
+					}
+
+				} else if elevDistance == myDistance && (currentMap[elev].Dir == IO.MD_Up || currentMap[elev].Dir == IO.MD_Stop) {
+					if elev < def.LOCAL_ID {
+						result = false
+					}
+				}
+			}
+		}
+	} else if currentMap[def.LOCAL_ID].Floor > floor {
+		for elev := 0; elev < def.NUMELEVATORS; elev++ {
+
+			if elev != def.LOCAL_ID && (currentMap[elev].State != def.S_Dead || currentMap[elev].State != def.S_Init) {
+
+				elevDistance := int(math.Abs(float64(currentMap[elev].Floor - floor)))
+
+				if elevDistance < myDistance {
+
+					if currentMap[elev].Floor < floor && (currentMap[elev].Dir == IO.MD_Up || currentMap[elev].Dir == IO.MD_Stop) {
+						result = false
+					} else if currentMap[elev].Floor > floor && (currentMap[elev].Dir == IO.MD_Down || currentMap[elev].Dir == IO.MD_Stop) {
+						result = false
+					} else if currentMap[elev].Floor == floor && currentMap[elev].Dir == IO.MD_Stop {
+						result = false
+
+					}
+
+				} else if elevDistance == myDistance && (currentMap[elev].Dir == IO.MD_Down || currentMap[elev].Dir == IO.MD_Stop) {
+					if currentMap[elev].ElevID < currentMap[def.LOCAL_ID].ElevID {
+						result = false
+					}
+				}
+
+			}
+		}
+	}
+	return result
 }
