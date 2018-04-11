@@ -25,7 +25,7 @@ func main() {
 	var motor_direction IO.MotorDirection
 
 	msg_buttonEvent := make(chan def.MapMessage, 100)
-	msg_fromHWFloor := make(chan def.MapMessage, 100)
+	//msg_fromHWFloor := make(chan def.MapMessage, 100)
 	msg_fromHWButton := make(chan def.MapMessage, 100)
 	msg_toHW := make(chan def.MapMessage, 100)
 	msg_toNetwork := make(chan def.MapMessage, 100)
@@ -43,7 +43,7 @@ func main() {
 
 	motor_direction = IO.MD_Down
 
-	go fsm.FSM(drv_buttons, drv_floors, fsm_chn, elevator_map_chn, motor_direction, msg_fromHWFloor, msg_fromHWButton, msg_fromFSM, msg_deadElev)
+	go fsm.FSM(drv_buttons, drv_floors, fsm_chn, elevator_map_chn, motor_direction, msg_fromFSM, msg_deadElev)
 
 	transmitTicker := time.NewTicker(100 * time.Millisecond)
 
