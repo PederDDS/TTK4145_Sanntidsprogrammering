@@ -35,11 +35,6 @@ type ButtonEvent struct {
 	Button ButtonType
 }
 
-<<<<<<< HEAD
-=======
-
-
->>>>>>> mprogg
 func Init(addr string, numFloors int) {
 	if _initialized {
 		fmt.Println("Driver already initialized!")
@@ -54,17 +49,13 @@ func Init(addr string, numFloors int) {
 	}
 	_initialized = true
 
-<<<<<<< HEAD
-=======
   for floor := 0; floor < def.NUMFLOORS; floor ++{
     for button := ButtonType(0); button < def.NUMBUTTON_TYPES; button ++{
       SetButtonLamp(button, floor, false)
     }
   }
-
 }
 
->>>>>>> mprogg
 func SetMotorDirection(dir MotorDirection) {
 	//fmt.Println("Motor direction: ", dir)
 	_mtx.Lock()
