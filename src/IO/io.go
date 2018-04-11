@@ -1,13 +1,13 @@
 package IO
 
 import (
-  "../def"
-  "time"
-  "sync"
-  "net"
-  "fmt"
-)
+	"fmt"
+	"net"
+	"sync"
+	"time"
 
+	"../def"
+)
 
 const _pollRate = 20 * time.Millisecond
 
@@ -17,6 +17,7 @@ var _mtx sync.Mutex
 var _conn net.Conn
 
 type MotorDirection int
+
 const (
 	MD_Up   MotorDirection = 1
 	MD_Down                = -1
@@ -24,6 +25,7 @@ const (
 )
 
 type ButtonType int
+
 const (
 	BT_HallUp   ButtonType = 0
 	BT_HallDown            = 1
@@ -34,8 +36,6 @@ type ButtonEvent struct {
 	Floor  int
 	Button ButtonType
 }
-
-
 
 func Init(addr string, numFloors int) {
 	if _initialized {
@@ -53,8 +53,8 @@ func Init(addr string, numFloors int) {
 }
 
 func SetMotorDirection(dir MotorDirection) {
-  //fmt.Println("Motor direction: ", dir)
-  _mtx.Lock()
+	//fmt.Println("Motor direction: ", dir)
+	_mtx.Lock()
 	defer _mtx.Unlock()
 	_conn.Write([]byte{1, byte(dir), 0, 0})
 }
@@ -82,8 +82,6 @@ func SetStopLamp(value bool) {
 	defer _mtx.Unlock()
 	_conn.Write([]byte{5, toByte(value), 0, 0})
 }
-
-
 
 func PollButtons(receiver chan<- ButtonEvent) {
 	prev := make([][3]bool, _numFloors)
@@ -136,12 +134,6 @@ func PollObstructionSwitch(receiver chan<- bool) {
 		prev = v
 	}
 }
-
-
-
-
-
-
 
 func getButton(button ButtonType, floor int) bool {
 	_mtx.Lock()
