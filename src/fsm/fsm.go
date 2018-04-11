@@ -29,7 +29,7 @@ func Initialize(floor_detection <-chan int, fsm_chn chan<- bool, elevator_map_ch
 	motor_direction = direction
 	currentMap[def.LOCAL_ID].Dir = motor_direction
 	sendMessage := def.MakeMapMessage(currentMap, nil)
-
+	fmt.Println("updateElevMap Initialize")
 	newMap, _ := ordermanager.UpdateElevMap(sendMessage.SendMap.(ordermanager.ElevatorMap))
 	IO.SetMotorDirection(motor_direction)
 	go timer(timeout)
@@ -67,7 +67,7 @@ func Dust(msg_fromFSM chan def.MapMessage) {
 	msg_fromFSM <- message
 }
 
-func FSM(drv_buttons <-chan IO.ButtonEvent, drv_floors <-chan int, fsm_chn chan bool, elevator_map_chn chan def.MapMessage, direction IO.MotorDirection, msg_buttonEvent chan def.MapMessage, msg_fromHWFloor chan def.MapMessage, msg_fromHWButton chan def.MapMessage, msg_fromFSM chan def.MapMessage, msg_deadElev chan def.MapMessage) {
+func FSM(drv_buttons <-chan IO.ButtonEvent, drv_floors <-chan int, fsm_chn chan bool, elevator_map_chn chan def.MapMessage, direction IO.MotorDirection, msg_fromHWFloor chan def.MapMessage, msg_fromHWButton chan def.MapMessage, msg_fromFSM chan def.MapMessage, msg_deadElev chan def.MapMessage) {
 
 	if initialized == false {
 		Initialize(drv_floors, fsm_chn, elevator_map_chn, IO.MD_Up)
@@ -90,7 +90,7 @@ func FSM(drv_buttons <-chan IO.ButtonEvent, drv_floors <-chan int, fsm_chn chan 
 			}
 
 		case msg_floor := <-drv_floors:
-			fmt.Println("case arrivalFloor")
+			fmt.Println("case msg_floor")
 			FloorArrival(msg_fromFSM, msg_floor, doorTimer)
 			idleTimer.Reset(def.IDLE_TIMEOUT_TIME * time.Second)
 
@@ -110,14 +110,7 @@ func FSM(drv_buttons <-chan IO.ButtonEvent, drv_floors <-chan int, fsm_chn chan 
 			newMap, _ := ordermanager.UpdateElevMap(sendMessage.SendMap.(ordermanager.ElevatorMap))
 			newMap[1].Dir = 0 // fordi newMap is declared and not used...
 			IO.SetMotorDirection(motor_direction)
-
-		case msg := <-msg_buttonEvent:
-			switch msg.SendEvent.(def.NewEvent).EventType {
-			case def.BUTTON_PUSHED:
-				button := msg.SendEvent.(def.NewEvent).Type.([]int)
-				ButtonPushed(msg_fromFSM, button[0], button[1], doorTimer)
-				idleTimer.Reset(def.IDLE_TIMEOUT_TIME * time.Second)
-			}
+			msg_fromFSM <- sendMessage
 
 		case msg := <-msg_deadElev:
 			switch msg.SendEvent.(def.NewEvent).EventType {
@@ -127,13 +120,19 @@ func FSM(drv_buttons <-chan IO.ButtonEvent, drv_floors <-chan int, fsm_chn chan 
 			}
 
 		case msg_button := <-drv_buttons:
+			fmt.Println("case msg_button")
 			currentMap := ordermanager.GetElevMap()
 			currentMap[def.LOCAL_ID].Buttons[msg_button.Floor][msg_button.Button] = 1
 			sendMessage := def.MakeMapMessage(currentMap, nil)
 			newMap, _ := ordermanager.UpdateElevMap(sendMessage.SendMap.(ordermanager.ElevatorMap))
 			newMap[1].Dir = 0 // fordi newMap is declared and not used...
 			IO.SetButtonLamp(msg_button.Button, msg_button.Floor, true)
+
+			ButtonPushed(msg_fromFSM, msg_button.Floor, int(msg_button.Button), doorTimer)
+			idleTimer.Reset(def.IDLE_TIMEOUT_TIME * time.Second)
+
 			//bcast_chn <- msg_butt
+			msg_fromFSM <- sendMessage
 
 		default:
 
@@ -284,9 +283,11 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
 			currentMap := DeleteOrdersOnFloor(currentMap, arrivalFloor)
 
 			doorTimer.Reset(def.DOOR_TIMEOUT_TIME * time.Second)
-
 			sendMsg := def.MakeMapMessage(currentMap, nil)
 			msg_fromFSM <- sendMsg
+			<-doorTimer.C
+			IO.SetDoorOpenLamp(false)
+
 		}
 	}
 }
@@ -322,12 +323,20 @@ func ButtonPushed(msg_fromFSM chan def.MapMessage, floor int, button int, doorTi
 			doorTimer.Reset(def.DOOR_TIMEOUT_TIME * time.Second)
 
 			elevator_state = def.S_DoorOpen
+			currentMap[def.LOCAL_ID].State = elevator_state
+			SendMapMessage(msg_fromFSM, currentMap, nil)
 
+			<-doorTimer.C
+			IO.SetDoorOpenLamp(false)
+			elevator_state = def.S_Idle
 			currentMap[def.LOCAL_ID].State = elevator_state
 			SendMapMessage(msg_fromFSM, currentMap, nil)
 
 		} else {
 			currentMap[def.LOCAL_ID].Buttons[floor][button] = 1
+			if ordermanager.IsClosestElevator(currentMap, floor) {
+				currentMap[def.LOCAL_ID].Orders[floor][button] = 2
+			}
 
 			motor_direction = ChooseDirection(currentMap)
 			IO.SetMotorDirection(motor_direction)
@@ -351,6 +360,10 @@ func ButtonPushed(msg_fromFSM chan def.MapMessage, floor int, button int, doorTi
 			if currentMap[def.LOCAL_ID].Buttons[floor][button] != 1 {
 				currentMap[def.LOCAL_ID].Buttons[floor][button] = 1
 
+				if ordermanager.IsClosestElevator(currentMap, floor) {
+					currentMap[def.LOCAL_ID].Orders[floor][button] = 2
+				}
+
 				SendMapMessage(msg_fromFSM, currentMap, nil)
 			}
 		}
@@ -358,6 +371,10 @@ func ButtonPushed(msg_fromFSM chan def.MapMessage, floor int, button int, doorTi
 	case def.S_Moving:
 		if currentMap[def.LOCAL_ID].Buttons[floor][button] != 1 {
 			currentMap[def.LOCAL_ID].Buttons[floor][button] = 1
+
+			if ordermanager.IsClosestElevator(currentMap, floor) {
+				currentMap[def.LOCAL_ID].Orders[floor][button] = 2
+			}
 
 			SendMapMessage(msg_fromFSM, currentMap, nil)
 		}

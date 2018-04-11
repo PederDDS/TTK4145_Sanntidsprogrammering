@@ -27,10 +27,10 @@ type Elev struct {
 type Request int
 
 const (
-	NO_ORDER         Request = 0
-	ORDER                    = 1
-	ORDER_ACCEPTED           = 2
-	ORDER_IMPOSSIBLE         = -1
+	NO_ORDER         = 0
+	ORDER            = 1
+	ORDER_ACCEPTED   = 2
+	ORDER_IMPOSSIBLE = -1
 )
 
 type ElevRequests []Request
@@ -251,7 +251,7 @@ func MakeEmptyElevMap() *ElevatorMap {
 		for floor := 0; floor < def.NUMFLOORS; floor++ {
 			for button := 0; button < def.NUMBUTTON_TYPES; button++ {
 				emptyMap[elev].Buttons[floor][button] = 0
-				emptyMap[elev].Orders[floor][button] = ORDER_IMPOSSIBLE
+				emptyMap[elev].Orders[floor][button] = NO_ORDER
 			}
 		}
 		emptyMap[def.LOCAL_ID].State = def.S_Dead
