@@ -44,7 +44,6 @@ func main() {
 	motor_direction = IO.MD_Down
 
 	go fsm.FSM(drv_buttons, drv_floors, fsm_chn, elevator_map_chn, motor_direction, msg_buttonEvent, msg_fromHWFloor, msg_fromHWButton, msg_fromFSM, msg_deadElev)
-	go fsm.Shmem(drv_buttons, drv_floors, motor_direction)
 
 	transmitTicker := time.NewTicker(100 * time.Millisecond)
 

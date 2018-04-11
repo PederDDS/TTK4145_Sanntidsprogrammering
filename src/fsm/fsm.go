@@ -89,6 +89,28 @@ func FSM(drv_buttons <-chan IO.ButtonEvent, drv_floors <-chan int, fsm_chn chan 
 				idleTimer.Reset(def.IDLE_TIMEOUT_TIME * time.Second)
 			}
 
+		case msg_floor := <-drv_floors:
+			fmt.Println("case arrivalFloor")
+			FloorArrival(msg_fromFSM, msg_floor, doorTimer)
+			idleTimer.Reset(def.IDLE_TIMEOUT_TIME * time.Second)
+
+			currentMap := ordermanager.GetElevMap()
+			if msg_floor == def.NUMFLOORS-1 {
+				motor_direction = IO.MD_Down
+			} else if msg_floor == 0 {
+				motor_direction = IO.MD_Up
+			}
+			currentMap[def.LOCAL_ID].Dir = motor_direction
+			currentMap[def.LOCAL_ID].Floor = msg_floor
+			if motor_direction != IO.MD_Stop && currentMap[def.LOCAL_ID].State != def.S_Dead {
+				currentMap[def.LOCAL_ID].State = def.S_Moving
+			}
+
+			sendMessage := def.MakeMapMessage(currentMap, nil)
+			newMap, _ := ordermanager.UpdateElevMap(sendMessage.SendMap.(ordermanager.ElevatorMap))
+			newMap[1].Dir = 0 // fordi newMap is declared and not used...
+			IO.SetMotorDirection(motor_direction)
+
 		case msg := <-msg_buttonEvent:
 			switch msg.SendEvent.(def.NewEvent).EventType {
 			case def.BUTTON_PUSHED:
@@ -104,15 +126,6 @@ func FSM(drv_buttons <-chan IO.ButtonEvent, drv_floors <-chan int, fsm_chn chan 
 				idleTimer.Reset(def.IDLE_TIMEOUT_TIME * time.Second)
 			}
 
-		default:
-
-		}
-	}
-}
-
-func Shmem(drv_buttons chan IO.ButtonEvent, drv_floors chan int, motor_direction IO.MotorDirection) {
-	for {
-		select {
 		case msg_button := <-drv_buttons:
 			currentMap := ordermanager.GetElevMap()
 			currentMap[def.LOCAL_ID].Buttons[msg_button.Floor][msg_button.Button] = 1
@@ -120,21 +133,10 @@ func Shmem(drv_buttons chan IO.ButtonEvent, drv_floors chan int, motor_direction
 			newMap, _ := ordermanager.UpdateElevMap(sendMessage.SendMap.(ordermanager.ElevatorMap))
 			newMap[1].Dir = 0 // fordi newMap is declared and not used...
 			IO.SetButtonLamp(msg_button.Button, msg_button.Floor, true)
-			//bcast_chn <- msg_button
+			//bcast_chn <- msg_butt
 
-		case msg_floor := <-drv_floors:
-			currentMap := ordermanager.GetElevMap()
-			if msg_floor == def.NUMFLOORS-1 {
-				motor_direction = IO.MD_Down
-			} else if msg_floor == 0 {
-				motor_direction = IO.MD_Up
-			}
-			currentMap[def.LOCAL_ID].Dir = motor_direction
-			currentMap[def.LOCAL_ID].Floor = msg_floor
-			sendMessage := def.MakeMapMessage(currentMap, nil)
-			newMap, _ := ordermanager.UpdateElevMap(sendMessage.SendMap.(ordermanager.ElevatorMap))
-			newMap[1].Dir = 0 // fordi newMap is declared and not used...
-			IO.SetMotorDirection(motor_direction)
+		default:
+
 		}
 	}
 }
@@ -267,6 +269,7 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
 	case def.S_Idle:
 		sendMsg := def.MakeMapMessage(currentMap, nil)
 		msg_fromFSM <- sendMsg
+		IO.SetFloorIndicator(arrivalFloor)
 
 	case def.S_Moving:
 		if PossibleStop(currentMap) {
