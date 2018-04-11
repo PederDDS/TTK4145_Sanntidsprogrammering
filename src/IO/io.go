@@ -17,7 +17,6 @@ var _mtx sync.Mutex
 var _conn net.Conn
 
 type MotorDirection int
-
 const (
 	MD_Up   MotorDirection = 1
 	MD_Down                = -1
@@ -25,7 +24,6 @@ const (
 )
 
 type ButtonType int
-
 const (
 	BT_HallUp   ButtonType = 0
 	BT_HallDown            = 1
@@ -37,6 +35,11 @@ type ButtonEvent struct {
 	Button ButtonType
 }
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> mprogg
 func Init(addr string, numFloors int) {
 	if _initialized {
 		fmt.Println("Driver already initialized!")
@@ -50,8 +53,18 @@ func Init(addr string, numFloors int) {
 		panic(err.Error())
 	}
 	_initialized = true
+
+<<<<<<< HEAD
+=======
+  for floor := 0; floor < def.NUMFLOORS; floor ++{
+    for button := ButtonType(0); button < def.NUMBUTTON_TYPES; button ++{
+      SetButtonLamp(button, floor, false)
+    }
+  }
+
 }
 
+>>>>>>> mprogg
 func SetMotorDirection(dir MotorDirection) {
 	//fmt.Println("Motor direction: ", dir)
 	_mtx.Lock()
