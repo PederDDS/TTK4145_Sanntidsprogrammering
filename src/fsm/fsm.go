@@ -415,7 +415,6 @@ func ButtonPushed(msg_fromFSM chan def.MapMessage, floor int, button int, doorTi
 				SetButtonLights(currentMap)
 				SendMapMessage(msg_fromFSM, currentMap, nil)
 			}
-		}
 
 	case def.S_Moving:
 		if currentMap[def.LOCAL_ID].Buttons[floor][button] != 1 {
