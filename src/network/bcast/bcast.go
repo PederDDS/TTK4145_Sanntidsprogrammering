@@ -7,6 +7,7 @@ import (
 	"net"
 	"reflect"
 	"strings"
+	"../../def"
 )
 
 // Encodes received values from `chans` into type-tagged JSON, then broadcasts
