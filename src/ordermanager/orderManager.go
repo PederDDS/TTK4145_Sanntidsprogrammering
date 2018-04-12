@@ -144,7 +144,6 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool) {
 					}
 				}
 			}
-		}
 
 	MakeBackup(currentMap)
 	SetElevMap(currentMap)
@@ -216,6 +215,7 @@ func NewOrder(newMap ElevatorMap) ElevatorMap{
 				}
 			}
 		}
+	return currentMap
 }
 
 func GetNewEvent(newMap ElevatorMap) (ElevatorMap, [][]int) {
