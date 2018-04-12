@@ -410,7 +410,7 @@ func ButtonPushed(msg_fromFSM chan def.MapMessage, floor int, button int, doorTi
 			SendMapMessage(msg_fromFSM, currentMap, nil)
 		} else {
 			if currentMap[def.LOCAL_ID].Orders[floor][button] == ordermanager.ORDER_ACCEPTED {
-				DoorTimeout(currentMap)
+				DoorTimeout(msg_fromFSM)
 			}
 				SetButtonLights(currentMap)
 				SendMapMessage(msg_fromFSM, currentMap, nil)
