@@ -16,6 +16,7 @@ const (
 
 	BACKUP_IP   = "	127.0.0.1:30000" //to be decided
 	BACKUP_PORT = ":30000"
+	SEND_PORT		= 30011
 	LOCAL_ID    = 0
 )
 
