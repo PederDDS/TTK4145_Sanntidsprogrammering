@@ -31,6 +31,9 @@ const (
 	ORDER            = 1
 	ORDER_ACCEPTED   = 2
 	ORDER_IMPOSSIBLE = -1
+
+	LAMP_OFF	= 0
+	LAMP_ON		= 1
 )
 
 type ElevRequests []Request
@@ -132,63 +135,70 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool) {
 			for floor := 0; floor < def.NUMFLOORS; floor++ {
 				for button := 0; button < def.NUMBUTTON_TYPES; button++ {
 
-					//set buttons to 0 or 2 depending on if there is an order or not
-					//if there is an accepted order, then buttons should be set to 2
-					if newMap[elev].Orders[floor][button] == 1 && currentMap[elev].Buttons[floor][button] != 2 {
+
+					if newMap[elev].Orders[floor][button] == ORDER && currentMap[elev].Orders[floor][button] == NO_ORDER {
 						if button != IO.BT_Cab {
+							update := true
 							for e := 0; e < def.NUMELEVATORS; e++ {
-								currentMap[e].Buttons[floor][button] = 2
+								if currentMap[e].Orders[floor][button] == ORDER_IMPOSSIBLE || currentMap[e].Orders[floor][button] == ORDER_ACCEPTED {
+									update = false
+								}
+							}
+							if update == true {
+								for e := 0; e < def.NUMELEVATORS; e++ {
+									currentMap[e].Orders[floor][button] = ORDER
+								}
 							}
 							allChangesMade = true
 						}
-						//if there was an order, but it has been completed, buttons should be set to 0 again
-					} else if newMap[elev].Orders[floor][button] == 0 && currentMap[elev].Orders[floor][button] == 1 {
+					} else if newMap[elev].Orders[floor][button] == ORDER_ACCEPTED && currentMap[elev].Orders[floor][button] == ORDER {
 						if button != IO.BT_Cab {
+							update := true
 							for e := 0; e < def.NUMELEVATORS; e++ {
-								currentMap[e].Buttons[floor][button] = 0
+								if currentMap[e].Orders[floor][button] == ORDER_IMPOSSIBLE || currentMap[e].Orders[floor][button] == NO_ORDER {
+									update = false
+								}
+							}
+							if update == true {
+								for e := 0; e < def.NUMELEVATORS; e++ {
+									currentMap[e].Orders[floor][button] = NO_ORDER
+									currentMap[e].Buttons[floor][button] = LAMP_ON
+								}
+								currentMap[def.LOCAL_ID].Orders[floor][button] = ORDER_ACCEPTED
+							}
+							allChangesMade = true
+						}
+					} else if newMap[elev].Orders[floor][button] == NO_ORDER && currentMap[elev].Orders[floor][button] == ORDER_ACCEPTED {
+						if button != IO.BT_Cab {
+							update := true
+							for e := 0; e < def.NUMELEVATORS; e++ {
+								if currentMap[e].Orders[floor][button] == ORDER_IMPOSSIBLE || currentMap[e].Orders[floor][button] == ORDER {
+									update = false
+								}
+							}
+							if update == true {
+								for e := 0; e < def.NUMELEVATORS; e++ {
+									currentMap[e].Orders[floor][button] = NO_ORDER
+									currentMap[e].Buttons[floor][button] = LAMP_OFF
+								}
 							}
 							allChangesMade = true
 						}
 					}
 
-					//set all values to 1
-					if newMap[elev].Buttons[floor][button] == 1 && currentMap[elev].Buttons[floor][button] == 0 {
-						if button != IO.BT_Cab {
-							for e := 0; e < def.NUMELEVATORS; e++ {
-								currentMap[e].Buttons[floor][button] = newMap[e].Buttons[floor][button]
+					if button == IO.BT_Cab {
+							if newMap[def.LOCAL_ID].Orders[floor][button] == ORDER {
+								currentMap[def.LOCAL_ID].Orders[floor][button] = ORDER_ACCEPTED
+								currentMap[def.LOCAL_ID].Buttons[floor][button] = LAMP_ON
+							} else if newMap[def.LOCAL_ID].Orders[floor][button] == NO_ORDER {
+								currentMap[def.LOCAL_ID].Orders[floor][button] = NO_ORDER
+								currentMap[def.LOCAL_ID].Buttons[floor][button] = LAMP_OFF
 							}
-							allChangesMade = true
-						} else if elev == def.LOCAL_ID {
-							currentMap[elev].Buttons[floor][IO.BT_Cab] = newMap[elev].Buttons[floor][IO.BT_Cab]
-							allChangesMade = true
-						}
-
-					} else if newMap[elev].Buttons[floor][button] == 2 && currentMap[elev].Buttons[floor][button] != 2 {
-						if button != IO.BT_Cab {
-							for e := 0; e < def.NUMELEVATORS; e++ {
-								currentMap[e].Buttons[floor][button] = newMap[e].Buttons[floor][button]
-							}
-							allChangesMade = true
-						} else if elev == def.LOCAL_ID {
-							currentMap[elev].Buttons[floor][IO.BT_Cab] = newMap[elev].Buttons[floor][IO.BT_Cab]
-							allChangesMade = true
-						}
-
-					} else if newMap[elev].Buttons[floor][button] == 0 && currentMap[elev].Buttons[floor][button] == 2 {
-						if button != IO.BT_Cab {
-							for e := 0; e < def.NUMELEVATORS; e++ {
-								currentMap[e].Buttons[floor][button] = newMap[e].Buttons[floor][button]
-							}
-							allChangesMade = true
-						} else if elev == def.LOCAL_ID {
-							currentMap[elev].Buttons[floor][IO.BT_Cab] = newMap[elev].Buttons[floor][IO.BT_Cab]
-							allChangesMade = true
-						}
+					}
 					}
 				}
 			}
 		}
-	}
 
 	MakeBackup(currentMap)
 	SetElevMap(currentMap)
