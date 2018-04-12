@@ -110,27 +110,54 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool) {
 	currentMap := GetElevMap()
 	allChangesMade := false
 
-	//update direction
-	if newMap[def.LOCAL_ID].Dir != currentMap[def.LOCAL_ID].Dir {
-		currentMap[def.LOCAL_ID].Dir = newMap[def.LOCAL_ID].Dir
-		allChangesMade = true
-	}
-
-	//update floor
-	if newMap[def.LOCAL_ID].Floor != currentMap[def.LOCAL_ID].Floor {
-		currentMap[def.LOCAL_ID].Floor = newMap[def.LOCAL_ID].Floor
-		allChangesMade = true
-	}
-
-	//update state
-	if newMap[def.LOCAL_ID].State != currentMap[def.LOCAL_ID].State {
-		currentMap[def.LOCAL_ID].State = newMap[def.LOCAL_ID].State
-		allChangesMade = true
-	}
-
 	//update buttons and orders
 	for elev := 0; elev < def.NUMELEVATORS; elev++ {
-		if currentMap[def.LOCAL_ID].State != def.S_Dead && newMap[def.LOCAL_ID].State != def.S_Dead {
+		//update directions
+		if newMap[elev].Dir != currentMap[elev].Dir {
+			currentMap[elev].Dir = newMap[elev].Dir
+			allChangesMade = true
+		}
+
+		//update floors
+		if newMap[elev].Floor != currentMap[elev].Floor {
+			currentMap[elev].Floor = newMap[elev].Floor
+			allChangesMade = true
+		}
+
+		//update states
+		if newMap[elev].State != currentMap[elev].State {
+			currentMap[elev].State = newMap[elev].State
+			allChangesMade = true
+		}
+
+			for floor := 0; floor < def.NUMFLOORS; floor++ {
+				for button := 0; button < def.NUMBUTTON_TYPES; button++ {
+					if newMap[elev].Buttons[floor][button] != currentMap[elev].Buttons[floor][button] {
+						currentMap[elev].Buttons[floor][button] = newMap[elev].Buttons[floor][button]
+						allChangesMade = true
+					}
+					if newMap[elev].Orders[floor][button] != currentMap[elev].Orders[floor][button] {
+						currentMap[elev].Orders[floor][button] = newMap[elev].Orders[floor][button]
+						allChangesMade = true
+					}
+
+					}
+				}
+			}
+		}
+
+	MakeBackup(currentMap)
+	SetElevMap(currentMap)
+
+	PrintElevMap()
+	return currentMap, allChangesMade
+}
+
+func NewOrder(newMap ElevatorMap) ElevatorMap{
+	currentMap := GetElevMap()
+
+	for elev := 0; elev < def.NUMELEVATORS; elev++ {
+		if currentMap[elev].State != def.S_Dead && currentMap[elev].State != def.S_Init {
 
 			for floor := 0; floor < def.NUMFLOORS; floor++ {
 				for button := 0; button < def.NUMBUTTON_TYPES; button++ {
@@ -145,11 +172,8 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool) {
 								}
 							}
 							if update == true {
-								for e := 0; e < def.NUMELEVATORS; e++ {
-									currentMap[e].Orders[floor][button] = ORDER
-								}
+									currentMap[elev].Orders[floor][button] = ORDER
 							}
-							allChangesMade = true
 						}
 					} else if newMap[elev].Orders[floor][button] == ORDER_ACCEPTED && currentMap[elev].Orders[floor][button] == ORDER {
 						if button != IO.BT_Cab {
@@ -160,13 +184,9 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool) {
 								}
 							}
 							if update == true {
-								for e := 0; e < def.NUMELEVATORS; e++ {
-									currentMap[e].Orders[floor][button] = NO_ORDER
-									currentMap[e].Buttons[floor][button] = LAMP_ON
-								}
-								currentMap[def.LOCAL_ID].Orders[floor][button] = ORDER_ACCEPTED
+								currentMap[elev].Orders[floor][button] = ORDER_ACCEPTED
+								currentMap[elev].Buttons[floor][button] = LAMP_ON
 							}
-							allChangesMade = true
 						}
 					} else if newMap[elev].Orders[floor][button] == NO_ORDER && currentMap[elev].Orders[floor][button] == ORDER_ACCEPTED {
 						if button != IO.BT_Cab {
@@ -177,12 +197,9 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool) {
 								}
 							}
 							if update == true {
-								for e := 0; e < def.NUMELEVATORS; e++ {
-									currentMap[e].Orders[floor][button] = NO_ORDER
-									currentMap[e].Buttons[floor][button] = LAMP_OFF
-								}
+									currentMap[elev].Orders[floor][button] = NO_ORDER
+									currentMap[elev].Buttons[floor][button] = LAMP_OFF
 							}
-							allChangesMade = true
 						}
 					}
 
@@ -199,12 +216,6 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool) {
 				}
 			}
 		}
-
-	MakeBackup(currentMap)
-	SetElevMap(currentMap)
-
-	PrintElevMap()
-	return currentMap, allChangesMade
 }
 
 func GetNewEvent(newMap ElevatorMap) (ElevatorMap, [][]int) {
