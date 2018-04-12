@@ -6,7 +6,7 @@ import (
 	"../fsm"
 	"../ordermanager"
 	//"net"
-	//"../network/bcast"
+	"../network/bcast"
 	//"../network/localip"
 	// "flag"
 	"fmt"
@@ -40,10 +40,13 @@ func main() {
 
 	go IO.PollButtons(drv_buttons)
 	go IO.PollFloorSensor(drv_floors)
+	//bcast.PollNetwork(msg_fromNetwork)
+	go bcast.Receiver(30020, msg_fromNetwork)
 
 	motor_direction = IO.MD_Down
 
 	go fsm.FSM(drv_buttons, drv_floors, fsm_chn, elevator_map_chn, motor_direction, msg_fromFSM, msg_deadElev)
+	go bcast.Transmitter(def.SEND_PORT, msg_toNetwork)
 
 	transmitTicker := time.NewTicker(100 * time.Millisecond)
 
@@ -53,9 +56,13 @@ func main() {
 	for {
 		select {
 		case msg := <-msg_fromHWButton:
+			fmt.Println("case msg_fromHWButton in main")
 			msg_buttonEvent <- msg
 
 		case msg := <-msg_fromNetwork:
+			fmt.Println("case msg_fromNetwork in main")
+			fmt.Println(msg)
+			//newMap := def.MakeMapMessage(msg, nil)
 			recievedMap := msg.SendMap.(ordermanager.ElevatorMap)
 			currentMap, buttonPushes := ordermanager.GetNewEvent(recievedMap)
 
@@ -81,16 +88,16 @@ func main() {
 			if changeMade {
 				transmitFlag = true
 			}
-		}
 
-		select {
 		case <-transmitTicker.C:
 			if transmitFlag {
 				if newMsg.SendMap != nil {
+					fmt.Println("Nå skulle noe blitt sendt!")
 					msg_toNetwork <- newMsg
 					transmitFlag = false
 				}
 			}
-		}
+		default:
 	}
+}
 }

@@ -3,7 +3,7 @@ package fsm
 import (
 	"fmt"
 	"time"
-
+	//"../network/bcast"
 	"../IO"
 	"../def"
 	"../ordermanager"
@@ -275,6 +275,7 @@ func IsOrderOnFloor(currentMap ordermanager.ElevatorMap, currentFloor int) bool 
 
 func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *time.Timer) {
 	currentMap := ordermanager.GetElevMap()
+	//SendMapMessage(msg_fromFSM, currentMap, nil) // Kun for testing!!!!!!!!!!!
 	currentMap[def.LOCAL_ID].Floor = arrivalFloor
   IO.SetFloorIndicator(arrivalFloor)
 
@@ -318,7 +319,7 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
 
 
 	case def.S_Moving:
-		if PossibleStop(currentMap) || IsOrderOnFloor(currentMap, arrivalFloor) {
+		if IsOrderOnFloor(currentMap, arrivalFloor) {
       motor_direction = IO.MD_Stop
       elevator_state = def.S_DoorOpen
 

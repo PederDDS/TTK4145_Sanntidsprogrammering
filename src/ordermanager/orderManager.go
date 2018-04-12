@@ -215,6 +215,7 @@ func NewOrder(newMap ElevatorMap) ElevatorMap{
 				}
 			}
 		}
+
 	return currentMap
 }
 

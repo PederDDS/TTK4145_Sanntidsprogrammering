@@ -119,7 +119,7 @@ func PollNetwork(msg_fromNetwork chan<- def.MapMessage){
 	poll_chn := make(chan def.MapMessage)
 	for {
 		for port := 30010; port < 30100; port++{
-			Receiver(port, poll_chn)
+			go Receiver(port, poll_chn)
 			select {
 			case msg_fromNet := <- poll_chn:
 				fmt.Println("Something came from the network")
