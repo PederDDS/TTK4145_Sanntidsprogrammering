@@ -194,7 +194,7 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool) {
 								currentMap[def.LOCAL_ID].Orders[floor][button] = NO_ORDER
 								currentMap[def.LOCAL_ID].Buttons[floor][button] = LAMP_OFF
 							}
-					}
+						}
 					}
 				}
 			}
