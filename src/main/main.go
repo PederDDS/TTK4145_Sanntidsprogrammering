@@ -40,8 +40,7 @@ func main() {
 
 	go IO.PollButtons(drv_buttons)
 	go IO.PollFloorSensor(drv_floors)
-	//bcast.PollNetwork(msg_fromNetwork)
-	go bcast.Receiver(30020, msg_fromNetwork)
+	go bcast.PollNetwork(msg_fromNetwork)
 
 	motor_direction = IO.MD_Down
 
