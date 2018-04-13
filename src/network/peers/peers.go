@@ -6,6 +6,7 @@ import (
 	"net"
 	"sort"
 	"time"
+	"../../ordermanager"
 	"../../def"
 )
 
@@ -91,7 +92,7 @@ func PeerWatch(msg_deadElev chan<- def.MapMessage)  {
 	transmitEnable 	:= make(chan bool, 100)
 	peerUpdateCh		:= make(chan PeerUpdate, 100)
 
-	go Transmitter(def.SEND_ID_PORT, def.LOCAL_ID, transmitEnable)
+	go Transmitter(def.SEND_ID_PORT, string(def.LOCAL_ID), transmitEnable)
 	go PollNetwork(peerUpdateCh)
 
 	currentMap := ordermanager.GetElevMap()
@@ -111,9 +112,8 @@ func PeerWatch(msg_deadElev chan<- def.MapMessage)  {
 			}
 
 		}
-	}
 	sendMsg := def.MakeMapMessage(currentMap, nil)
-	msg_deadElev <- sendMap
+	msg_deadElev <- sendMsg
 }
 
 func PollNetwork(peerUpdateCh chan<- PeerUpdate){
