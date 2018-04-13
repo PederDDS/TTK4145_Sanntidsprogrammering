@@ -118,7 +118,9 @@ func checkArgs(chans ...interface{}) {
 func PollNetwork(msg_fromNetwork chan<- def.MapMessage){
 	poll_chn := make(chan def.MapMessage, 100)
 	for port := 30010; port < 30100; port++{
-		go Receiver(port, poll_chn)
+		if port != def.SEND_PORT{
+			go Receiver(port, poll_chn)
+		}
 	}
 	for {
 			select {
