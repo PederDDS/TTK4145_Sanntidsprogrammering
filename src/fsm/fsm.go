@@ -36,7 +36,7 @@ func Initialize(floor_detection <-chan int, fsm_chn chan<- bool, elevator_map_ch
 	newMap[1].Dir = 0 // fordi newMap is declared and not used...
 
 	select {
-	case <-floor_detection:
+	case floor := <-floor_detection:
 		fmt.Println("Floor detected")
 		motor_direction = IO.MD_Stop
 		sendMessage = def.MakeMapMessage(nil, motor_direction)
@@ -48,6 +48,7 @@ func Initialize(floor_detection <-chan int, fsm_chn chan<- bool, elevator_map_ch
 		IO.SetMotorDirection(motor_direction)
 		elevator_state = def.S_Idle
 		currentMap[def.LOCAL_ID].State = elevator_state
+		currentMap[def.LOCAL_ID].Floor = floor
 		sendMessage = def.MakeMapMessage(currentMap, nil)
 
 		newMap, _ = ordermanager.UpdateElevMap(sendMessage.SendMap.(ordermanager.ElevatorMap))
@@ -362,6 +363,7 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
 func DeadElevator(msg_fromFSM chan def.MapMessage, deadElevID int) {
 	currentMap := ordermanager.GetElevMap()
 	currentMap[deadElevID].State = def.S_Dead
+	currentMap = ordermanager.RedistributeOrders(currentMap, deadElevID)
 	for floor := 0; floor < def.NUMFLOORS; floor++ {
 		currentMap[deadElevID].Orders[floor][IO.BT_HallUp] = ordermanager.ORDER_IMPOSSIBLE
 		currentMap[deadElevID].Orders[floor][IO.BT_HallDown] = ordermanager.ORDER_IMPOSSIBLE
