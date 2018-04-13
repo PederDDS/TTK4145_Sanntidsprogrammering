@@ -8,6 +8,7 @@ import (
 	//"net"
 	"../network/bcast"
 	//"../network/localip"
+	"../network/peers"
 	// "flag"
 	"fmt"
 	//"os"
@@ -41,6 +42,7 @@ func main() {
 	go IO.PollButtons(drv_buttons)
 	go IO.PollFloorSensor(drv_floors)
 	go bcast.PollNetwork(msg_fromNetwork)
+	go peers.PeerWatch(msg_deadElev)
 
 	motor_direction = IO.MD_Down
 

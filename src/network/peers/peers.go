@@ -103,12 +103,14 @@ func PeerWatch(msg_deadElev chan<- def.MapMessage)  {
 		select {
 		case msg := <- peerUpdateCh:
 			if len(msg.Lost) > 0 {
+				fmt.Println("msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost")
 				IDint, err := strconv.Atoi(msg.Lost[0])
 				if err != nil{
 					fmt.Println("Oops! Something went wrong in Atoi-conversion in peers")
 				}
 				currentMap[IDint].State = def.S_Dead
 			} else if msg.New != ""{
+				fmt.Println("msg.New msg.New msg.New msg.New msg.New msg.New msg.New msg.New msg.New msg.New msg.New msg.New msg.New msg.New ")
 				IDint, err := strconv.Atoi(msg.New)
 				if err != nil{
 					fmt.Println("Oops! Something went wrong in Atoi-conversion in peers")
