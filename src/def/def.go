@@ -16,8 +16,9 @@ const (
 
 	BACKUP_IP   = "	127.0.0.1:30000" //to be decided
 	BACKUP_PORT = ":30000"
-	SEND_PORT		= 30011
-	LOCAL_ID    = 0
+	SEND_MAP_PORT	= 30011	// Must be in range 30010 to 30100
+	SEND_ID_PORT = 20011	// Must be in range 20010 to 20100
+	LOCAL_ID    = 0				// Must be in rage 0 to NUMELEVATORS
 )
 
 type ElevState int
