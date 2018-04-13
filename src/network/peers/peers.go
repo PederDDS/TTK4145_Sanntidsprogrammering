@@ -107,9 +107,6 @@ func PeerWatch(msg_deadElev chan<- def.MapMessage)  {
 				id := int(msg.New)
 				currentMap[id].State = def.S_Init
 			}
-
-			}
-
 		}
 	}
 	sendMsg := def.MakeMapMessage(currentMap, nil)

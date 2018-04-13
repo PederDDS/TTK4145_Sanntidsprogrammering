@@ -119,9 +119,9 @@ func FSM(drv_buttons chan IO.ButtonEvent, drv_floors chan int, fsm_chn chan bool
 		case msg := <-msg_deadElev: //elevator is dead
       fmt.Println("case message from msg_deadElev in FSM")
 			for elev := 0; elev < def.NUMELEVATORS; elev++ {
-				if msg.SendMap[elev].State == def.S_Dead {
+				if msg.SendMap.(ordermanager.ElevatorMap)[elev].State == def.S_Dead {
 
-					if msg.SendMap[def.LOCAL_ID].State == def.S_Dead {
+					if msg.SendMap.(ordermanager.ElevatorMap)[def.LOCAL_ID].State == def.S_Dead {
 						elevator_state = def.S_Dead
 					}
 
@@ -131,15 +131,27 @@ func FSM(drv_buttons chan IO.ButtonEvent, drv_floors chan int, fsm_chn chan bool
 			}
 
 
-
-
 		case msg_button := <-drv_buttons: //detects new buttons pushed
 			fmt.Println("case msg from drv_buttons in FSM")
       currentMap := ordermanager.GetElevMap()
+
+			if msg_button.Button == IO.BT_Cab {
+				currentMap[def.LOCAL_ID].Orders[msg_button.Floor][msg_button.Button] = ordermanager.ORDER
+				ordermanager.NewOrder(currentMap)
+			}
+
 			SetButtonLights(currentMap)
 
-      ButtonPushed(msg_fromFSM, msg_button.Floor, int(msg_button.Button), doorTimer)
-			idleTimer.Reset(def.IDLE_TIMEOUT_TIME * time.Second)
+			var tempElevAlive = 0
+			for elev := 0; elev < def.NUMELEVATORS; elev++ {
+				if currentMap[def.LOCAL_ID].State != def.S_Dead && currentMap[def.LOCAL_ID].State != def.S_Init {
+					tempElevAlive++
+				}
+				if tempElevAlive == def.NUMELEVATORS {
+		      ButtonPushed(msg_fromFSM, msg_button.Floor, int(msg_button.Button), doorTimer)
+					idleTimer.Reset(def.IDLE_TIMEOUT_TIME * time.Second)
+				}
+			}
 
       //update currentMap
 			SendMapMessage(msg_fromFSM, currentMap, nil)
