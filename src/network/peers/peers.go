@@ -8,6 +8,7 @@ import (
 	"time"
 	"../../ordermanager"
 	"../../def"
+	"strconv"
 )
 
 type PeerUpdate struct {
@@ -52,6 +53,7 @@ func Receiver(port int, peerUpdateCh chan<- PeerUpdate) {
 
 		id := string(buf[:n])
 
+
 		// Adding new connection
 		p.New = ""
 		if id != "" {
@@ -91,26 +93,32 @@ func Receiver(port int, peerUpdateCh chan<- PeerUpdate) {
 func PeerWatch(msg_deadElev chan<- def.MapMessage)  {
 	transmitEnable 	:= make(chan bool, 100)
 	peerUpdateCh		:= make(chan PeerUpdate, 100)
-
-	go Transmitter(def.SEND_ID_PORT, string(def.LOCAL_ID), transmitEnable)
+	go Transmitter(def.SEND_ID_PORT, strconv.Itoa(def.LOCAL_ID), transmitEnable)
 	go PollNetwork(peerUpdateCh)
+
 
 	currentMap := ordermanager.GetElevMap()
 
 	for {
 		select {
 		case msg := <- peerUpdateCh:
-			for element := range len(msg.Lost) {
-				id := int(msg.Lost[element])
-				currentMap[id].State = def.S_Dead
+			if len(msg.Lost) > 0 {
+				IDint, err := strconv.Atoi(msg.Lost[0])
+				if err != nil{
+					fmt.Println("Oops! Something went wrong in Atoi-conversion in peers")
+				}
+				currentMap[IDint].State = def.S_Dead
+			} else if msg.New != ""{
+				IDint, err := strconv.Atoi(msg.New)
+				if err != nil{
+					fmt.Println("Oops! Something went wrong in Atoi-conversion in peers")
+				}
+				currentMap[IDint].State = def.S_Idle
 			}
-			if msg.New != "" {
-				id := int(msg.New)
-				currentMap[id].State = def.S_Init
-			}
+			sendMsg := def.MakeMapMessage(currentMap, nil)
+			msg_deadElev <- sendMsg
 		}
-	sendMsg := def.MakeMapMessage(currentMap, nil)
-	msg_deadElev <- sendMsg
+	}
 }
 
 func PollNetwork(peerUpdateCh chan<- PeerUpdate){
