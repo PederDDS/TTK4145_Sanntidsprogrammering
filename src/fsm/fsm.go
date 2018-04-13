@@ -89,6 +89,7 @@ func FSM(drv_buttons chan IO.ButtonEvent, drv_floors chan int, fsm_chn chan bool
 			fmt.Println("case msg from drv_floors FSM")
       currentMap := ordermanager.GetElevMap()
 
+
       FloorArrival(msg_fromFSM, arrivalFloor, doorTimer)
 			idleTimer.Reset(def.IDLE_TIMEOUT_TIME * time.Second)
 
@@ -101,7 +102,6 @@ func FSM(drv_buttons chan IO.ButtonEvent, drv_floors chan int, fsm_chn chan bool
       IO.SetMotorDirection(motor_direction)
 
 			currentMap = ordermanager.GetElevMap()
-			SetButtonLights(currentMap)
 
       //update currentMap
 			if motor_direction != IO.MD_Stop && currentMap[def.LOCAL_ID].State != def.S_Dead {
@@ -118,6 +118,8 @@ func FSM(drv_buttons chan IO.ButtonEvent, drv_floors chan int, fsm_chn chan bool
 
 		case msg := <-msg_deadElev: //elevator is dead
       fmt.Println("case message from msg_deadElev in FSM")
+			SetButtonLights(msg.SendMap.(ordermanager.ElevatorMap))
+
 			for elev := 0; elev < def.NUMELEVATORS; elev++ {
 				if msg.SendMap.(ordermanager.ElevatorMap)[elev].State == def.S_Dead {
 
@@ -137,14 +139,16 @@ func FSM(drv_buttons chan IO.ButtonEvent, drv_floors chan int, fsm_chn chan bool
 
 			if msg_button.Button == IO.BT_Cab {
 				currentMap[def.LOCAL_ID].Orders[msg_button.Floor][msg_button.Button] = ordermanager.ORDER
-				ordermanager.NewOrder(currentMap)
+				currentMap = ordermanager.NewOrder(currentMap)
+				fmt.Println("new order?")
+				ordermanager.PrintElevMap()
 			}
 
 			SetButtonLights(currentMap)
 
 			var tempElevAlive = 0
 			for elev := 0; elev < def.NUMELEVATORS; elev++ {
-				if currentMap[def.LOCAL_ID].State != def.S_Dead && currentMap[def.LOCAL_ID].State != def.S_Init {
+				if currentMap[elev].State != def.S_Dead && currentMap[elev].State != def.S_Init {
 					tempElevAlive++
 				}
 				if tempElevAlive == def.NUMELEVATORS {
@@ -342,6 +346,8 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
 
 	case def.S_Moving:
 		if IsOrderOnFloor(currentMap, arrivalFloor) {
+			SetButtonLights(currentMap)
+
       motor_direction = IO.MD_Stop
       elevator_state = def.S_DoorOpen
 
@@ -358,9 +364,12 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
 
       <-doorTimer.C
 			DoorTimeout(msg_fromFSM)
+			SetButtonLights(currentMap)
+
     }
 
     case def.S_DoorOpen:
+			SetButtonLights(currentMap)
       DoorTimeout(msg_fromFSM)
 	}
 }
@@ -369,11 +378,10 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
 func DeadElevator(msg_fromFSM chan def.MapMessage, deadElevID int) {
 	currentMap := ordermanager.GetElevMap()
 	currentMap[deadElevID].State = def.S_Dead
-	for button := 0; button < def.NUMBUTTON_TYPES; button++ {
 		for floor := 0; floor < def.NUMFLOORS; floor++ {
-			currentMap[deadElevID].Orders[floor][button] = ordermanager.ORDER_IMPOSSIBLE
+			currentMap[deadElevID].Orders[floor][IO.BT_HallUp] = ordermanager.ORDER_IMPOSSIBLE
+			currentMap[deadElevID].Orders[floor][IO.BT_HallDown] = ordermanager.ORDER_IMPOSSIBLE
 		}
-	}
 
 	SendMapMessage(msg_fromFSM, currentMap, nil)
 
@@ -394,6 +402,7 @@ func DeadElevator(msg_fromFSM chan def.MapMessage, deadElevID int) {
 
 
 func ButtonPushed(msg_fromFSM chan def.MapMessage, floor int, button int, doorTimer *time.Timer) {
+	fmt.Println("buttonPushed")
 	currentMap := ordermanager.GetElevMap()
 	SetButtonLights(currentMap)
 
@@ -517,6 +526,13 @@ func PossibleStop(currentMap ordermanager.ElevatorMap) bool { //run at every new
 
 func SetButtonLights(currentMap ordermanager.ElevatorMap) {
 	currentFloor := currentMap[def.LOCAL_ID].Floor
+
+	if currentMap[def.LOCAL_ID].Orders[currentFloor][IO.BT_Cab] == ordermanager.ORDER_ACCEPTED {
+		IO.SetButtonLamp(IO.BT_Cab, currentFloor, true)
+	} else {
+		IO.SetButtonLamp(IO.BT_Cab, currentFloor, false)
+	}
+
 	for elev := 0; elev < def.NUMELEVATORS; elev++ {
 		for floor := 0; floor < def.NUMFLOORS; floor++ {
 			if currentMap[elev].Orders[floor][IO.BT_HallUp] == ordermanager.ORDER_ACCEPTED {
@@ -531,12 +547,6 @@ func SetButtonLights(currentMap ordermanager.ElevatorMap) {
 				IO.SetButtonLamp(IO.BT_HallDown, floor, false)
 			}
 		}
-	}
-
-	if currentMap[def.LOCAL_ID].Orders[currentFloor][IO.BT_Cab] == ordermanager.ORDER_ACCEPTED {
-		IO.SetButtonLamp(IO.BT_Cab, currentFloor, true)
-	} else {
-		IO.SetButtonLamp(IO.BT_Cab, currentFloor, false)
 	}
 }
 
