@@ -97,28 +97,38 @@ func PeerWatch(msg_deadElev chan<- def.MapMessage)  {
 	go PollNetwork(peerUpdateCh)
 
 
-	currentMap := ordermanager.GetElevMap()
+	var currentMap ordermanager.ElevatorMap
 
 	for {
 		select {
 		case msg := <- peerUpdateCh:
-			if len(msg.Lost) > 0 {
-				fmt.Println("msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost")
-				IDint, err := strconv.Atoi(msg.Lost[0])
-				if err != nil{
-					fmt.Println("Oops! Something went wrong in Atoi-conversion in peers")
-				}
-				currentMap[IDint].State = def.S_Dead
-			} else if msg.New != ""{
-				fmt.Println("msg.New msg.New msg.New msg.New msg.New msg.New msg.New msg.New msg.New msg.New msg.New msg.New msg.New msg.New ")
+			currentMap = ordermanager.GetElevMap()
+			 if msg.New != ""{
+				fmt.Println("msg.New msg.New msg.New msg.New msg.New msg.New msg.New msg.New msg.New")
 				IDint, err := strconv.Atoi(msg.New)
+				fmt.Println("The elevator that just came back was:", IDint)
 				if err != nil{
 					fmt.Println("Oops! Something went wrong in Atoi-conversion in peers")
 				}
 				currentMap[IDint].State = def.S_Idle
+
+				sendMsg := def.MakeMapMessage(currentMap, nil)
+				msg_deadElev <- sendMsg
+				
+				} else if len(msg.Lost) > 0 {
+				fmt.Println("msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost")
+				IDint, err := strconv.Atoi(msg.Lost[0])
+				fmt.Println("The elevator that just crashed was:", IDint)
+				if err != nil{
+					fmt.Println("Oops! Something went wrong in Atoi-conversion in peers")
+
+				}
+				currentMap[IDint].State = def.S_Dead
+
+				sendMsg := def.MakeMapMessage(currentMap, nil)
+				msg_deadElev <- sendMsg
 			}
-			sendMsg := def.MakeMapMessage(currentMap, nil)
-			msg_deadElev <- sendMsg
+
 		}
 	}
 }

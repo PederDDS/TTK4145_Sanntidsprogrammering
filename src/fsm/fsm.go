@@ -115,17 +115,25 @@ func FSM(drv_buttons chan IO.ButtonEvent, drv_floors chan int, fsm_chn chan bool
 
 		case msg := <-msg_deadElev: //elevator is dead
 			fmt.Println("case message from msg_deadElev in FSM")
-			SetButtonLights(msg.SendMap.(ordermanager.ElevatorMap))
 
 			for elev := 0; elev < def.NUMELEVATORS; elev++ {
+				fmt.Println("Looping states:", msg.SendMap.(ordermanager.ElevatorMap)[elev].State)
 				if msg.SendMap.(ordermanager.ElevatorMap)[elev].State == def.S_Dead {
-
+					fmt.Println("FSM thinks that the dead elev is:", elev)
+					DeadElevator(msg_fromFSM, elev)
+					idleTimer.Reset(def.IDLE_TIMEOUT_TIME * time.Second)
 					if msg.SendMap.(ordermanager.ElevatorMap)[def.LOCAL_ID].State == def.S_Dead {
 						elevator_state = def.S_Dead
 					}
-
-					DeadElevator(msg_fromFSM, msg.SendEvent.(def.NewEvent).Type.(int))
-					idleTimer.Reset(def.IDLE_TIMEOUT_TIME * time.Second)
+				} else if msg.SendMap.(ordermanager.ElevatorMap)[elev].State == def.S_Idle {
+					localMap := ordermanager.GetElevMap()
+					localMap[elev].State = def.S_Idle
+					for floor := 0; floor < def.NUMFLOORS; floor++{
+						for button := 0; button < def.NUMBUTTON_TYPES - 1; button++ {
+							localMap[elev].Orders[floor][button] = ordermanager.NO_ORDER
+						}
+					}
+					SendMapMessage(msg_fromFSM, localMap, nil)
 				}
 			}
 
@@ -360,30 +368,17 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
 	}
 }
 
-func DeadElevator(msg_fromFSM chan def.MapMessage, deadElevID int) {
-	currentMap := ordermanager.GetElevMap()
-	currentMap[deadElevID].State = def.S_Dead
-	currentMap = ordermanager.RedistributeOrders(currentMap, deadElevID)
-	for floor := 0; floor < def.NUMFLOORS; floor++ {
-		currentMap[deadElevID].Orders[floor][IO.BT_HallUp] = ordermanager.ORDER_IMPOSSIBLE
-		currentMap[deadElevID].Orders[floor][IO.BT_HallDown] = ordermanager.ORDER_IMPOSSIBLE
-	}
+func DeadElevator(msg_fromFSM chan def.MapMessage, deadElevId int) {
+			fmt.Println("func: DeadElevator(", deadElevId,")")
+			currentMap := ordermanager.GetElevMap()
+			currentMap[deadElevId].State = def.S_Dead
+			currentMap = ordermanager.RedistributeOrders(currentMap, deadElevId)
+			for floor := 0; floor < def.NUMFLOORS; floor++ {
+				currentMap[deadElevId].Orders[floor][IO.BT_HallUp] = ordermanager.ORDER_IMPOSSIBLE
+				currentMap[deadElevId].Orders[floor][IO.BT_HallDown] = ordermanager.ORDER_IMPOSSIBLE
+			}
+			SendMapMessage(msg_fromFSM, currentMap, nil)
 
-	SendMapMessage(msg_fromFSM, currentMap, nil)
-
-	//dette lurer jeg veldig på om vi trenger, skjønner ikke helt hvorfor det er her
-	switch elevator_state {
-	case def.S_Idle:
-		motor_direction = ChooseDirection(currentMap)
-		IO.SetMotorDirection(motor_direction)
-		currentMap[def.LOCAL_ID].Dir = motor_direction
-
-		if motor_direction != IO.MD_Stop {
-			elevator_state = def.S_Moving
-		}
-	}
-	currentMap[def.LOCAL_ID].State = elevator_state
-	SendMapMessage(msg_fromFSM, currentMap, nil)
 }
 
 func ButtonPushed(msg_fromFSM chan def.MapMessage, floor int, button int, doorTimer *time.Timer) {

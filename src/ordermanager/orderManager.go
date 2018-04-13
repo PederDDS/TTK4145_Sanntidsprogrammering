@@ -40,7 +40,6 @@ type ElevRequests []Request
 
 //functions
 func InitElevMap(backup bool) {
-	fmt.Println("func: InitElevMap")
 	mapMtx.Lock()
 	localElevMap = new(ElevatorMap)
 
@@ -56,7 +55,7 @@ func InitElevMap(backup bool) {
 
 func PrintElevMap() {
 	// Husk å endre 1 tilbake til def.NUMELEVATORS!!
-	for elev := 0; elev < 1; elev++ {
+	for elev := 0; elev < def.NUMELEVATORS; elev++ {
 		fmt.Println("-----------------------------------------------")
 		fmt.Println("Elevator number:", localElevMap[elev].ElevID)
 		switch localElevMap[elev].Dir {
@@ -105,7 +104,6 @@ func PrintElevMap() {
 }
 
 func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool) {
-	fmt.Println("func: UpdateElevMap")
 	currentMap := GetElevMap()
 	allChangesMade := false
 
@@ -283,7 +281,6 @@ func RedistributeOrders(currentMap ElevatorMap, deadElevId int) ElevatorMap {
 }
 
 func GetNewEvent(newMap ElevatorMap) (ElevatorMap, [][]int) {
-	fmt.Println("func: GetNewEvent")
 	currentMap := GetElevMap()
 	var buttonChanges [][]int
 
@@ -313,14 +310,12 @@ func GetNewEvent(newMap ElevatorMap) (ElevatorMap, [][]int) {
 }
 
 func SetElevMap(newMap ElevatorMap) {
-	fmt.Println("func: SetElevMap")
 	mapMtx.Lock()
 	*localElevMap = newMap
 	mapMtx.Unlock()
 }
 
 func GetElevMap() ElevatorMap {
-	fmt.Println("func: GetElevMap")
 	mapMtx.Lock()
 	elevMap := *localElevMap
 	mapMtx.Unlock()
@@ -328,7 +323,6 @@ func GetElevMap() ElevatorMap {
 }
 
 func MakeEmptyElevMap() *ElevatorMap {
-	fmt.Println("func: MakeEmptyElevMap")
 	emptyMap := new(ElevatorMap)
 
 	for elev := 0; elev < def.NUMELEVATORS; elev++ {
@@ -348,7 +342,6 @@ func MakeEmptyElevMap() *ElevatorMap {
 }
 
 func IsClosestElevator(currentMap ElevatorMap, floor int) bool {
-	fmt.Println("func: IsClosestElevator")
 	result := true
 	myDistance := int(math.Abs(float64(currentMap[def.LOCAL_ID].Floor - floor)))
 

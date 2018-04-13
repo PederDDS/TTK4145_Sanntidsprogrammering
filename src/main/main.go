@@ -41,13 +41,14 @@ func main() {
 
 	go IO.PollButtons(drv_buttons)
 	go IO.PollFloorSensor(drv_floors)
-	go bcast.PollNetwork(msg_fromNetwork)
-	go peers.PeerWatch(msg_deadElev)
+
 
 	motor_direction = IO.MD_Down
 
 	go fsm.FSM(drv_buttons, drv_floors, fsm_chn, elevator_map_chn, motor_direction, msg_fromFSM, msg_deadElev)
 	go bcast.Transmitter(def.SEND_MAP_PORT, msg_toNetwork)
+	go bcast.PollNetwork(msg_fromNetwork)
+	go peers.PeerWatch(msg_deadElev)
 
 	transmitTicker := time.NewTicker(100 * time.Millisecond)
 
