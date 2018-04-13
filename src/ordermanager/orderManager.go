@@ -17,6 +17,7 @@ type ElevatorMap [def.NUMELEVATORS]Elev
 
 type Elev struct {
 	ElevID  int
+	Active	bool
 	Dir     IO.MotorDirection
 	Floor   int
 	State   def.ElevState
@@ -59,7 +60,7 @@ func PrintElevMap() {
 	for elev := 0; elev < 1; elev++ {
 		fmt.Println("-----------------------------------------------")
 		fmt.Println("Elevator number:", localElevMap[elev].ElevID)
-
+		fmt.Println("Active elevator:", localElevMap[elev].Active)
 		switch localElevMap[elev].Dir {
 		case -1:
 			fmt.Println("Motor direction: Down")
@@ -276,6 +277,7 @@ func MakeEmptyElevMap() *ElevatorMap {
 				emptyMap[elev].Orders[floor][button] = NO_ORDER
 			}
 		}
+		emptyMap[def.LOCAL_ID].Active = true
 		emptyMap[def.LOCAL_ID].State = def.S_Dead
 		emptyMap[def.LOCAL_ID].Dir = IO.MD_Stop
 		emptyMap[def.LOCAL_ID].Floor = -1
