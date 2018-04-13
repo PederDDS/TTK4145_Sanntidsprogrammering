@@ -116,12 +116,12 @@ func FSM(drv_buttons chan IO.ButtonEvent, drv_floors chan int, fsm_chn chan bool
 
 		case msg := <-msg_deadElev: //elevator is dead
       fmt.Println("case message from msg_deadElev in FSM")
-
-			switch msg.SendEvent.(def.NewEvent).EventType {
-			case def.ELEVATOR_DEAD:
+			if msg.SendMap[def.LOCAL_ID].State == def.S_Dead {
+				elevator_state = def.S_Dead
 				DeadElevator(msg_fromFSM, msg.SendEvent.(def.NewEvent).Type.(int))
 				idleTimer.Reset(def.IDLE_TIMEOUT_TIME * time.Second)
 			}
+
 
 		case msg_button := <-drv_buttons: //detects new buttons pushed
 			fmt.Println("case msg from drv_buttons in FSM")
