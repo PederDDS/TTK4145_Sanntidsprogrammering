@@ -101,6 +101,8 @@ func FSM(drv_buttons chan IO.ButtonEvent, drv_floors chan int, fsm_chn chan bool
       IO.SetMotorDirection(motor_direction)
 
 			currentMap = ordermanager.GetElevMap()
+			SetButtonLights(currentMap)
+
       //update currentMap
 			if motor_direction != IO.MD_Stop && currentMap[def.LOCAL_ID].State != def.S_Dead {
 				currentMap[def.LOCAL_ID].State = def.S_Moving
@@ -116,20 +118,40 @@ func FSM(drv_buttons chan IO.ButtonEvent, drv_floors chan int, fsm_chn chan bool
 
 		case msg := <-msg_deadElev: //elevator is dead
       fmt.Println("case message from msg_deadElev in FSM")
+			for elev := 0; elev < def.NUMELEVATORS; elev++ {
+				if msg.SendMap.(ordermanager.ElevatorMap)[elev].State == def.S_Dead {
 
-			switch msg.SendEvent.(def.NewEvent).EventType {
-			case def.ELEVATOR_DEAD:
-				DeadElevator(msg_fromFSM, msg.SendEvent.(def.NewEvent).Type.(int))
-				idleTimer.Reset(def.IDLE_TIMEOUT_TIME * time.Second)
+					if msg.SendMap.(ordermanager.ElevatorMap)[def.LOCAL_ID].State == def.S_Dead {
+						elevator_state = def.S_Dead
+					}
+
+					DeadElevator(msg_fromFSM, msg.SendEvent.(def.NewEvent).Type.(int))
+					idleTimer.Reset(def.IDLE_TIMEOUT_TIME * time.Second)
+				}
 			}
+
 
 		case msg_button := <-drv_buttons: //detects new buttons pushed
 			fmt.Println("case msg from drv_buttons in FSM")
       currentMap := ordermanager.GetElevMap()
 
-      IO.SetButtonLamp(msg_button.Button, msg_button.Floor, true)
-      ButtonPushed(msg_fromFSM, msg_button.Floor, int(msg_button.Button), doorTimer)
-			idleTimer.Reset(def.IDLE_TIMEOUT_TIME * time.Second)
+			if msg_button.Button == IO.BT_Cab {
+				currentMap[def.LOCAL_ID].Orders[msg_button.Floor][msg_button.Button] = ordermanager.ORDER
+				ordermanager.NewOrder(currentMap)
+			}
+
+			SetButtonLights(currentMap)
+
+			var tempElevAlive = 0
+			for elev := 0; elev < def.NUMELEVATORS; elev++ {
+				if currentMap[def.LOCAL_ID].State != def.S_Dead && currentMap[def.LOCAL_ID].State != def.S_Init {
+					tempElevAlive++
+				}
+				if tempElevAlive == def.NUMELEVATORS {
+		      ButtonPushed(msg_fromFSM, msg_button.Floor, int(msg_button.Button), doorTimer)
+					idleTimer.Reset(def.IDLE_TIMEOUT_TIME * time.Second)
+				}
+			}
 
       //update currentMap
 			SendMapMessage(msg_fromFSM, currentMap, nil)
