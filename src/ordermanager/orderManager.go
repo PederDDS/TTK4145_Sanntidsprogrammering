@@ -17,6 +17,7 @@ type ElevatorMap [def.NUMELEVATORS]Elev
 
 type Elev struct {
 	ElevID  int
+	Active	bool
 	Dir     IO.MotorDirection
 	Floor   int
 	State   def.ElevState
@@ -58,6 +59,7 @@ func PrintElevMap() {
 	for elev := 0; elev < def.NUMELEVATORS; elev++ {
 		fmt.Println("-----------------------------------------------")
 		fmt.Println("Elevator number:", localElevMap[elev].ElevID)
+		fmt.Println("Active elevator:", localElevMap[elev].Active)
 		switch localElevMap[elev].Dir {
 		case -1:
 			fmt.Println("Motor direction: Down")
@@ -110,35 +112,36 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool) {
 	//update buttons and orders
 	for elev := 0; elev < def.NUMELEVATORS; elev++ {
 		//update directions
-		if newMap[elev].Dir != currentMap[elev].Dir {
-			currentMap[elev].Dir = newMap[elev].Dir
-			allChangesMade = true
-		}
+		if newMap[elev].Active {
+			if newMap[elev].Dir != currentMap[elev].Dir {
+				currentMap[elev].Dir = newMap[elev].Dir
+				allChangesMade = true
+			}
 
-		//update floors
-		if newMap[elev].Floor != currentMap[elev].Floor {
-			currentMap[elev].Floor = newMap[elev].Floor
-			allChangesMade = true
-		}
+			//update floors
+			if newMap[elev].Floor != currentMap[elev].Floor {
+				currentMap[elev].Floor = newMap[elev].Floor
+				allChangesMade = true
+			}
 
+			for floor := 0; floor < def.NUMFLOORS; floor++ {
+				for button := 0; button < def.NUMBUTTON_TYPES; button++ {
+					if newMap[elev].Buttons[floor][button] != currentMap[elev].Buttons[floor][button] {
+						currentMap[elev].Buttons[floor][button] = newMap[elev].Buttons[floor][button]
+						allChangesMade = true
+					}
+					if newMap[elev].Orders[floor][button] != currentMap[elev].Orders[floor][button] {
+						currentMap[elev].Orders[floor][button] = newMap[elev].Orders[floor][button]
+						allChangesMade = true
+					}
+
+				}
+			}
+		}
 		//update states
 		if newMap[elev].State != currentMap[elev].State && (newMap[elev].State != def.S_Dead || elev == def.LOCAL_ID) {
 			currentMap[elev].State = newMap[elev].State
 			allChangesMade = true
-		}
-
-		for floor := 0; floor < def.NUMFLOORS; floor++ {
-			for button := 0; button < def.NUMBUTTON_TYPES; button++ {
-				if newMap[elev].Buttons[floor][button] != currentMap[elev].Buttons[floor][button] {
-					currentMap[elev].Buttons[floor][button] = newMap[elev].Buttons[floor][button]
-					allChangesMade = true
-				}
-				if newMap[elev].Orders[floor][button] != currentMap[elev].Orders[floor][button] {
-					currentMap[elev].Orders[floor][button] = newMap[elev].Orders[floor][button]
-					allChangesMade = true
-				}
-
-			}
 		}
 	}
 	//handle cab orders
@@ -279,6 +282,7 @@ func MakeEmptyElevMap() *ElevatorMap {
 			}
 		}
 		emptyMap[def.LOCAL_ID].State = def.S_Dead
+		emptyMap[def.LOCAL_ID].Active = true
 		emptyMap[def.LOCAL_ID].Dir = IO.MD_Stop
 		emptyMap[def.LOCAL_ID].Floor = -1
 	}
