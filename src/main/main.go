@@ -87,6 +87,7 @@ func main() {
 
 			newMsg = currentMap
 			newMapMsg := def.MakeMapMessage(newMsg, nil)
+			fsm.SetButtonLights(currentMap)
 			msg_toHW <- newMapMsg
 
 			if changeMade {
@@ -95,7 +96,6 @@ func main() {
 
 		case <-transmitTicker.C:
 			if transmitFlag {
-					fmt.Println("Nå skulle noe blitt sendt!")
 					msg_toNetwork <- newMsg
 					transmitFlag = false
 			}

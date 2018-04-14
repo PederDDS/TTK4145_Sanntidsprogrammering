@@ -146,19 +146,15 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool) {
 	}
 	//handle cab orders
 	for floor := 0; floor < def.NUMFLOORS; floor++ {
-		for button := 0; button < def.NUMBUTTON_TYPES; button++ {
-			if button == IO.BT_Cab {
-				if newMap[def.LOCAL_ID].Orders[floor][button] == ORDER && currentMap[def.LOCAL_ID].State != def.S_Dead {
-					currentMap[def.LOCAL_ID].Orders[floor][button] = ORDER_ACCEPTED
-					currentMap[def.LOCAL_ID].Buttons[floor][button] = LAMP_ON
+				if newMap[def.LOCAL_ID].Orders[floor][IO.BT_Cab] == ORDER && currentMap[def.LOCAL_ID].State != def.S_Dead {
+					currentMap[def.LOCAL_ID].Orders[floor][IO.BT_Cab] = ORDER_ACCEPTED
+					currentMap[def.LOCAL_ID].Buttons[floor][IO.BT_Cab] = LAMP_ON
 					allChangesMade = true
-				} else if newMap[def.LOCAL_ID].Orders[floor][button] == NO_ORDER && currentMap[def.LOCAL_ID].State != def.S_Dead {
-					currentMap[def.LOCAL_ID].Orders[floor][button] = NO_ORDER
-					currentMap[def.LOCAL_ID].Buttons[floor][button] = LAMP_OFF
+				} /*else if newMap[def.LOCAL_ID].Orders[floor][IO.BT_Cab] == NO_ORDER && currentMap[def.LOCAL_ID].State != def.S_Dead {
+					currentMap[def.LOCAL_ID].Orders[floor][IO.BT_Cab] = NO_ORDER
+					currentMap[def.LOCAL_ID].Buttons[floor][IO.BT_Cab] = LAMP_OFF
 					allChangesMade = true
-				}
-			}
-		}
+				}*/
 	}
 
 	//check if all elevators are alive
