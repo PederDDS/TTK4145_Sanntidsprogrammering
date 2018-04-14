@@ -13,6 +13,7 @@ import (
 	"fmt"
 	//"os"
 	"time"
+	//"reflect"
 )
 
 func main() {
@@ -29,8 +30,8 @@ func main() {
 	//msg_fromHWFloor := make(chan def.MapMessage, 100)
 	msg_fromHWButton := make(chan def.MapMessage, 100)
 	msg_toHW := make(chan def.MapMessage, 100)
-	msg_toNetwork := make(chan def.MapMessage, 100)
-	msg_fromNetwork := make(chan def.MapMessage, 100)
+	msg_toNetwork := make(chan ordermanager.ElevatorMap, 100)
+	msg_fromNetwork := make(chan ordermanager.ElevatorMap, 100)
 	msg_fromFSM := make(chan def.MapMessage, 100)
 	msg_deadElev := make(chan def.MapMessage, 100)
 
@@ -52,7 +53,7 @@ func main() {
 
 	transmitTicker := time.NewTicker(100 * time.Millisecond)
 
-	var newMsg def.MapMessage
+	var newMsg ordermanager.ElevatorMap
 	transmitFlag := false
 
 	for {
@@ -63,12 +64,12 @@ func main() {
 
 		case msg := <-msg_fromNetwork:
 			fmt.Println("case msg_fromNetwork in main")
-			fmt.Println(msg)
-			//newMap := def.MakeMapMessage(msg, nil)
-			recievedMap := msg.SendMap.(ordermanager.ElevatorMap)
-			currentMap, buttonPushes := ordermanager.GetNewEvent(recievedMap)
-
-			newMsg = def.MakeMapMessage(currentMap, nil)
+			newMap, changeMade := ordermanager.UpdateElevMap(msg)
+			if changeMade {
+				newMsg = newMap
+				transmitFlag = true
+			}
+			/*
 			msg_toHW <- newMsg
 
 			for _, push := range buttonPushes {
@@ -77,15 +78,16 @@ func main() {
 				newMsg = def.MakeMapMessage(currentMap, fsmEvent)
 
 				msg_buttonEvent <- newMsg
-			}
+			}*/
 
 		case msg := <-msg_fromFSM:
 			fmt.Println("case msg_fromFSM in main")
 			recievedMap := msg.SendMap.(ordermanager.ElevatorMap)
 			currentMap, changeMade := ordermanager.UpdateElevMap(recievedMap)
 
-			newMsg = def.MakeMapMessage(currentMap, nil)
-			msg_toHW <- newMsg
+			newMsg = currentMap
+			newMapMsg := def.MakeMapMessage(newMsg, nil)
+			msg_toHW <- newMapMsg
 
 			if changeMade {
 				transmitFlag = true
@@ -93,11 +95,9 @@ func main() {
 
 		case <-transmitTicker.C:
 			if transmitFlag {
-				if newMsg.SendMap != nil {
 					fmt.Println("Nå skulle noe blitt sendt!")
 					msg_toNetwork <- newMsg
 					transmitFlag = false
-				}
 			}
 		default:
 	}

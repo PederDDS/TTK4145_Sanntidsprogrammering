@@ -143,9 +143,8 @@ func FSM(drv_buttons chan IO.ButtonEvent, drv_floors chan int, fsm_chn chan bool
 
 			if msg_button.Button == IO.BT_Cab {
 				currentMap[def.LOCAL_ID].Orders[msg_button.Floor][msg_button.Button] = ordermanager.ORDER
-				currentMap = ordermanager.NewOrder(currentMap)
+				currentMap, _ = ordermanager.UpdateElevMap(currentMap)
 				fmt.Println("new order?")
-				ordermanager.PrintElevMap()
 			}
 
 			SetButtonLights(currentMap)

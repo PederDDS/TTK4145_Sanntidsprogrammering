@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strings"
 	"../../def"
+	"../../ordermanager"
 )
 
 // Encodes received values from `chans` into type-tagged JSON, then broadcasts
@@ -115,8 +116,8 @@ func checkArgs(chans ...interface{}) {
 	}
 }
 
-func PollNetwork(msg_fromNetwork chan<- def.MapMessage){
-	poll_chn := make(chan def.MapMessage, 100)
+func PollNetwork(msg_fromNetwork chan<- ordermanager.ElevatorMap){
+	poll_chn := make(chan ordermanager.ElevatorMap, 100)
 	for port := 30010; port < 30100; port++{
 		if port != def.SEND_MAP_PORT{
 			go Receiver(port, poll_chn)
