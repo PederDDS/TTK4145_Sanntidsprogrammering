@@ -126,7 +126,6 @@ func PollNetwork(msg_fromNetwork chan<- ordermanager.ElevatorMap){
 	for {
 			select {
 			case msg_fromNet := <- poll_chn:
-				fmt.Println("Something came from the network")
 				msg_fromNetwork <- msg_fromNet
 		}
 	}

@@ -8,7 +8,6 @@ import (
 	"time"
 	"../../ordermanager"
 	"../../def"
-	"strconv"
 )
 
 type PeerUpdate struct {
@@ -93,7 +92,22 @@ func Receiver(port int, peerUpdateCh chan<- PeerUpdate) {
 func PeerWatch(msg_deadElev chan<- def.MapMessage)  {
 	transmitEnable 	:= make(chan bool, 100)
 	peerUpdateCh		:= make(chan PeerUpdate, 100)
-	go Transmitter(def.SEND_ID_PORT, strconv.Itoa(def.LOCAL_ID), transmitEnable)
+
+	var sendID string
+	var ID int
+
+	switch def.LOCAL_ID {
+	case 0:
+		sendID = "ljhvcada"
+	case 1:
+		sendID = "esoiufhwep"
+	case 2:
+		sendID = "adwjpafae"
+	case 3:
+		sendID = "sdlhifsake"
+	}
+
+	go Transmitter(def.SEND_ID_PORT, sendID, transmitEnable)
 	go PollNetwork(peerUpdateCh)
 
 
@@ -104,30 +118,50 @@ func PeerWatch(msg_deadElev chan<- def.MapMessage)  {
 		case msg := <- peerUpdateCh:
 			currentMap = ordermanager.GetElevMap()
 			 if msg.New != ""{
-				fmt.Println("msg.New msg.New msg.New msg.New msg.New msg.New msg.New msg.New msg.New")
-				IDint, err := strconv.Atoi(msg.New)
-				fmt.Println("The elevator that just came back was:", IDint)
-				if err != nil{
-					fmt.Println("Oops! Something went wrong in Atoi-conversion in peers")
+				switch msg.New {
+				case "ljhvcada":
+					fmt.Println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+					ID = 0
+				case "esoiufhwep":
+					fmt.Println("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
+					ID = 1
+				case "adwjpafae":
+					fmt.Println("cccccccccccccccccccccccccccccccccccccccccccccccccccccccc")
+					ID = 2
+				case "sdlhifsake":
+					fmt.Println("dddddddddddddddddddddddddddddddddddddddddddddddddddddd")
+					ID = 3
 				}
-				currentMap[IDint].State = def.S_Idle
+
+				fmt.Println("The elevator that just came back was:", ID)
+				currentMap[ID].State = def.S_Idle
 
 				sendMsg := def.MakeMapMessage(currentMap, nil)
 				msg_deadElev <- sendMsg
-				
-				} else if len(msg.Lost) > 0 {
-				fmt.Println("msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost msg.Lost")
-				IDint, err := strconv.Atoi(msg.Lost[0])
-				fmt.Println("The elevator that just crashed was:", IDint)
-				if err != nil{
-					fmt.Println("Oops! Something went wrong in Atoi-conversion in peers")
 
-				}
-				currentMap[IDint].State = def.S_Dead
+			} else if len(msg.Lost) > 0 {
+				if msg.Lost[0] != ""{
+   				switch msg.Lost[0] {
+   				case "ljhvcada":
+					fmt.Println("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+   					ID = 0
+   				case "esoiufhwep":
+					fmt.Println("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
+   					ID = 1
+   				case "adwjpafae":
+					fmt.Println("gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg")
+   					ID = 2
+   				case "sdlhifsake":
+					fmt.Println("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh")
+   					ID = 3
+   				}
+				fmt.Println("The elevator that just crashed was:", ID)
+				currentMap[ID].State = def.S_Dead
 
 				sendMsg := def.MakeMapMessage(currentMap, nil)
 				msg_deadElev <- sendMsg
 			}
+		}
 
 		}
 	}
@@ -143,7 +177,6 @@ func PollNetwork(peerUpdateCh chan<- PeerUpdate){
 	for {
 			select {
 			case msg_fromNet := <- poll_chn:
-				fmt.Println("Something came from the network")
 				peerUpdateCh <- msg_fromNet
 		}
 	}
