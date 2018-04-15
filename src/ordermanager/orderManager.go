@@ -124,7 +124,7 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool) {
 				currentMap[elev].Floor = newMap[elev].Floor
 				allChangesMade = true
 			}
-
+			/*
 			for floor := 0; floor < def.NUMFLOORS; floor++ {
 				for button := 0; button < def.NUMBUTTON_TYPES; button++ {
 					if newMap[elev].Orders[floor][button] != currentMap[elev].Orders[floor][button] {
@@ -133,7 +133,7 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool) {
 					}
 
 				}
-			}
+			}*/
 			for floor := 0; floor < def.NUMFLOORS; floor++ {
 				for button := 0; button < def.NUMBUTTON_TYPES-1; button++ {
 					if currentMap[elev].Orders[floor][button] != ORDER_IMPOSSIBLE {
@@ -182,6 +182,7 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool) {
 }
 
 func OverWriteDead(newMap ElevatorMap, deadElevId int) ElevatorMap {
+fmt.Println("OverWriteDead(", deadElevId, ")")
 	newMap[deadElevId].State = def.S_Dead
 	for floor := 0; floor < def.NUMFLOORS; floor++ {
 		newMap[deadElevId].Orders[floor][IO.BT_HallUp] = ORDER_IMPOSSIBLE
