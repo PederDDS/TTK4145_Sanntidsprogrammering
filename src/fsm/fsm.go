@@ -120,15 +120,16 @@ func FSM(drv_buttons chan IO.ButtonEvent, drv_floors chan int, fsm_chn chan bool
 
 		case msg := <-msg_deadElev: //elevator is dead
 			fmt.Println("case message from msg_deadElev in FSM")
+			localMap := ordermanager.GetElevMap()
 			for elev := 0; elev < def.NUMELEVATORS; elev++ {
-				if msg.SendMap.(ordermanager.ElevatorMap)[elev].State == def.S_Dead {
+				if msg.SendMap.(ordermanager.ElevatorMap)[elev].State == def.S_Dead && localMap[elev].State != def.S_Dead {
 					fmt.Println("FSM thinks that the dead elev is:", elev)
 					DeadElevator(msg_fromFSM, elev)
 					idleTimer.Reset(def.IDLE_TIMEOUT_TIME * time.Second)
 					if msg.SendMap.(ordermanager.ElevatorMap)[def.LOCAL_ID].State == def.S_Dead {
 						elevator_state = def.S_Dead
 					}
-				} else if msg.SendMap.(ordermanager.ElevatorMap)[elev].State == def.S_Idle {
+				} else if msg.SendMap.(ordermanager.ElevatorMap)[elev].State == def.S_Idle && localMap[elev].State == def.S_Dead{
 					localMap := ordermanager.GetElevMap()
 					localMap = ordermanager.OverWriteIdle(localMap, elev)
 					if msg.SendMap.(ordermanager.ElevatorMap)[def.LOCAL_ID].State != def.S_Dead {

@@ -134,6 +134,22 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool) {
 
 				}
 			}
+			for floor := 0; floor < def.NUMFLOORS; floor++ {
+				for button := 0; button < def.NUMBUTTON_TYPES-1; button++ {
+					if currentMap[elev].Orders[floor][button] != ORDER_IMPOSSIBLE {
+						 if newMap[elev].Orders[floor][button] == ORDER && currentMap[elev].Orders[floor][button] != ORDER_ACCEPTED {
+								if tempElevAlive > 1 {
+									currentMap = SetToOrder(currentMap, ORDER_ACCEPTED, IO.ButtonType(button))
+								}
+							allChangesMade = true
+							} else if newMap[elev].Orders[floor][button] == ORDER_ACCEPTED && currentMap[elev].Orders[floor][button] != NO_ORDER {
+									currentMap[elev].Orders[floor][button] = ORDER_ACCEPTED
+							} else if newMap[elev].Orders[floor][button] == NO_ORDER && currentMap[elev].Orders[floor][button] != ORDER {
+									currentMap[elev].Orders[floor][button] = NO_ORDER
+								}
+				}
+			}
+			}
 		}
 		//update states
 		if newMap[elev].State != currentMap[elev].State && newMap[elev].State != def.S_Dead && currentMap[elev].State != def.S_Dead {
@@ -152,27 +168,6 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool) {
 					currentMap[def.LOCAL_ID].Orders[floor][IO.BT_Cab] = ORDER_ACCEPTED
 					allChangesMade = true
 				}
-	}
-
-
-	//handle hall orders
-	for elev := 0; elev < def.NUMELEVATORS; elev++ {
-		for floor := 0; floor < def.NUMFLOORS; floor++ {
-			for button := 0; button < def.NUMBUTTON_TYPES-1; button++ {
-				if currentMap[elev].Orders[floor][button] != ORDER_IMPOSSIBLE {
-					 if newMap[elev].Orders[floor][button] == ORDER && currentMap[elev].Orders[floor][button] != ORDER_ACCEPTED {
-							if tempElevAlive > 1 {
-								currentMap = SetToOrder(currentMap, ORDER_ACCEPTED, IO.ButtonType(button))
-							}
-						allChangesMade = true
-						} else if newMap[elev].Orders[floor][button] == ORDER_ACCEPTED && currentMap[elev].Orders[floor][button] != NO_ORDER {
-								currentMap[elev].Orders[floor][button] = ORDER_ACCEPTED
-						} else if newMap[elev].Orders[floor][button] == NO_ORDER && currentMap[elev].Orders[floor][button] != ORDER {
-								currentMap[elev].Orders[floor][button] = NO_ORDER
-							}
-			}
-		}
-		}
 	}
 
 	if tempElevAlive == def.NUMELEVATORS {
