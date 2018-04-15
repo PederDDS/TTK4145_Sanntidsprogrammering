@@ -167,6 +167,8 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool) {
 				if newMap[def.LOCAL_ID].Orders[floor][IO.BT_Cab] == ORDER && currentMap[def.LOCAL_ID].State != def.S_Dead {
 					currentMap[def.LOCAL_ID].Orders[floor][IO.BT_Cab] = ORDER_ACCEPTED
 					allChangesMade = true
+				} else if newMap[def.LOCAL_ID].Orders[floor][IO.BT_Cab] == NO_ORDER && currentMap[def.LOCAL_ID].Orders[floor][IO.BT_Cab] == ORDER_ACCEPTED {
+					currentMap[def.LOCAL_ID].Orders[floor][IO.BT_Cab] = NO_ORDER
 				}
 	}
 
