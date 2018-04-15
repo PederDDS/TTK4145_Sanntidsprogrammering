@@ -112,8 +112,10 @@ func PeerWatch(msg_deadElev chan<- def.MapMessage)  {
 
 
 	var currentMap ordermanager.ElevatorMap
+	var send bool
 
 	for {
+		send = false
 		select {
 		case msg := <- peerUpdateCh:
 			currentMap = ordermanager.GetElevMap()
@@ -122,22 +124,27 @@ func PeerWatch(msg_deadElev chan<- def.MapMessage)  {
 				case "ljhvcada":
 					fmt.Println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 					ID = 0
+					send = true
 				case "esoiufhwep":
 					fmt.Println("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
 					ID = 1
+					send = true
 				case "adwjpafae":
 					fmt.Println("cccccccccccccccccccccccccccccccccccccccccccccccccccccccc")
 					ID = 2
+					send = true
 				case "sdlhifsake":
 					fmt.Println("dddddddddddddddddddddddddddddddddddddddddddddddddddddd")
 					ID = 3
+					send = true
 				}
 
-				fmt.Println("The elevator that just came back was:", ID)
-				currentMap[ID].State = def.S_Idle
+				if send {
+					currentMap[ID].State = def.S_Idle
 
-				sendMsg := def.MakeMapMessage(currentMap, nil)
-				msg_deadElev <- sendMsg
+					sendMsg := def.MakeMapMessage(currentMap, nil)
+					msg_deadElev <- sendMsg
+			}
 
 			} else if len(msg.Lost) > 0 {
 				if msg.Lost[0] != ""{
@@ -145,21 +152,26 @@ func PeerWatch(msg_deadElev chan<- def.MapMessage)  {
    				case "ljhvcada":
 					fmt.Println("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
    					ID = 0
+						send = true
    				case "esoiufhwep":
 					fmt.Println("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
    					ID = 1
+						send = true
    				case "adwjpafae":
 					fmt.Println("gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg")
    					ID = 2
+						send = true
    				case "sdlhifsake":
 					fmt.Println("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh")
    					ID = 3
+						send = true
    				}
-				fmt.Println("The elevator that just crashed was:", ID)
-				currentMap[ID].State = def.S_Dead
+					if send {
+						currentMap[ID].State = def.S_Dead
 
-				sendMsg := def.MakeMapMessage(currentMap, nil)
-				msg_deadElev <- sendMsg
+						sendMsg := def.MakeMapMessage(currentMap, nil)
+						msg_deadElev <- sendMsg
+				}
 			}
 		}
 

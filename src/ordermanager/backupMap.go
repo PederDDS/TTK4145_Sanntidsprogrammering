@@ -79,7 +79,7 @@ func GetBackup() ElevatorMap {
 		backupMap[elevator].ElevID, _ = strconv.Atoi(stringMap[elevator*(5+def.NUMFLOORS)][0])
 		for floor := 0; floor < def.NUMFLOORS; floor++ {
 			for button := 0; button < def.NUMBUTTON_TYPES; button++ {
-				backupMap[elevator].Buttons[floor][button], _ = strconv.Atoi(stringMap[elevator*(5+def.NUMFLOORS)+1+floor][button])
+				backupMap[elevator].Orders[floor][button], _ = strconv.Atoi(stringMap[elevator*(5+def.NUMFLOORS)+1+floor][button])
 			}
 		}
 		dir, _ := strconv.Atoi(stringMap[elevator*(5+def.NUMFLOORS)+def.NUMFLOORS+1][0])
@@ -94,7 +94,6 @@ func GetBackup() ElevatorMap {
 
 
 func MakeBackup(backupMap ElevatorMap) {
-	fmt.Println("func: MakeBackup")
 	backupFile, err := os.Create("backup.txt")
 
 	if err != nil {
@@ -110,7 +109,7 @@ func MakeBackup(backupMap ElevatorMap) {
 		for floor := 0; floor < def.NUMFLOORS; floor++ {
 			stringArray := []string{}
 			for button := 0; button < def.NUMBUTTON_TYPES; button++ {
-				stringArray = append(stringArray, strconv.Itoa(backupMap[elevator].Buttons[floor][button]))
+				stringArray = append(stringArray, strconv.Itoa(backupMap[elevator].Orders[floor][button]))
 			}
 			stringMap = append(stringMap, stringArray)
 		}
