@@ -140,6 +140,7 @@ func PeerWatch(msg_deadElev chan<- def.MapMessage)  {
 				}
 
 				if send {
+					fmt.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 					currentMap[ID].State = def.S_Idle
 
 					sendMsg := def.MakeMapMessage(currentMap, nil)
@@ -167,6 +168,7 @@ func PeerWatch(msg_deadElev chan<- def.MapMessage)  {
 						send = true
    				}
 					if send {
+						fmt.Println("ÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆ")
 						currentMap[ID].State = def.S_Dead
 
 						sendMsg := def.MakeMapMessage(currentMap, nil)
