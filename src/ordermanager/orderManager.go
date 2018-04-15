@@ -124,22 +124,13 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool) {
 				currentMap[elev].Floor = newMap[elev].Floor
 				allChangesMade = true
 			}
-			/*
-			for floor := 0; floor < def.NUMFLOORS; floor++ {
-				for button := 0; button < def.NUMBUTTON_TYPES; button++ {
-					if newMap[elev].Orders[floor][button] != currentMap[elev].Orders[floor][button] {
-						currentMap[elev].Orders[floor][button] = newMap[elev].Orders[floor][button]
-						allChangesMade = true
-					}
 
-				}
-			}*/
 			for floor := 0; floor < def.NUMFLOORS; floor++ {
 				for button := 0; button < def.NUMBUTTON_TYPES-1; button++ {
 					if currentMap[elev].Orders[floor][button] != ORDER_IMPOSSIBLE {
 						 if newMap[elev].Orders[floor][button] == ORDER && currentMap[elev].Orders[floor][button] != ORDER_ACCEPTED {
 								if tempElevAlive > 1 {
-									currentMap = SetToOrder(currentMap, ORDER_ACCEPTED, IO.ButtonType(button))
+									currentMap = SetToOrder(currentMap, ORDER_ACCEPTED, floor, IO.ButtonType(button))
 								}
 							allChangesMade = true
 							} else if newMap[elev].Orders[floor][button] == ORDER_ACCEPTED && currentMap[elev].Orders[floor][button] != NO_ORDER {
@@ -206,23 +197,33 @@ func OverWriteIdle(newMap ElevatorMap, idleElevId int) ElevatorMap {
 	return newMap
 }
 
-func SetToOrder(currentMap ElevatorMap, order int, button IO.ButtonType) ElevatorMap {
+func SetToOrder(currentMap ElevatorMap, order int, floor int, button IO.ButtonType) ElevatorMap {
 	for elev := 0; elev < def.NUMELEVATORS; elev++ {
-		for floor := 0; floor < def.NUMFLOORS; floor++ {
 			if currentMap[elev].State != def.S_Dead {
 				currentMap[elev].Orders[floor][button] = order
-			}
 		}
 	}
 	return currentMap
 }
 
+func IsOrderOnFloor(currentMap ElevatorMap, currentFloor int) bool {
+	for button := 0; button < def.NUMBUTTON_TYPES; button++ {
+		if currentMap[def.LOCAL_ID].Orders[currentFloor][button] == ORDER_ACCEPTED {
+			return true
+		}
+	}
+	return false
+}
+
 func DistributeOrders(currentMap ElevatorMap) ElevatorMap {
 	for floor := 0; floor < def.NUMFLOORS; floor++ {
 		for button := 0; button < def.NUMBUTTON_TYPES-1; button++ {
-			if IsClosestElevator(currentMap, floor) {
-				currentMap = SetToOrder(currentMap, NO_ORDER, IO.ButtonType(button))
-				currentMap[def.LOCAL_ID].Orders[floor][button] = ORDER_ACCEPTED
+			if IsOrderOnFloor(currentMap, floor) {
+				if IsClosestElevator(currentMap, floor) {
+					currentMap = SetToOrder(currentMap, NO_ORDER, floor, IO.ButtonType(button))
+					currentMap[def.LOCAL_ID].Orders[floor][button] = ORDER_ACCEPTED
+					fmt.Println("Ja, er du gæær'n, det kan se ut som om feilen er her!!!!")
+				}
 			}
 		}
 	}
