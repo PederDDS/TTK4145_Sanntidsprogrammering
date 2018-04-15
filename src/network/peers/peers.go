@@ -122,28 +122,26 @@ func PeerWatch(msg_deadElev chan<- def.MapMessage)  {
 			 if msg.New != ""{
 				switch msg.New {
 				case "ljhvcada":
-					fmt.Println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 					ID = 0
 					send = true
 				case "esoiufhwep":
-					fmt.Println("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
 					ID = 1
 					send = true
 				case "adwjpafae":
-					fmt.Println("cccccccccccccccccccccccccccccccccccccccccccccccccccccccc")
 					ID = 2
 					send = true
 				case "sdlhifsake":
-					fmt.Println("dddddddddddddddddddddddddddddddddddddddddddddddddddddd")
 					ID = 3
 					send = true
+				default:
+					ID = -1
+					send = false
 				}
 
-				if send {
-					fmt.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+				if send && ID != -1{
 					currentMap[ID].State = def.S_Idle
 
-					sendMsg := def.MakeMapMessage(currentMap, nil)
+					sendMsg := def.MakeMapMessage(currentMap, "New elevator")
 					msg_deadElev <- sendMsg
 			}
 
@@ -151,27 +149,25 @@ func PeerWatch(msg_deadElev chan<- def.MapMessage)  {
 				if msg.Lost[0] != ""{
    				switch msg.Lost[0] {
    				case "ljhvcada":
-					fmt.Println("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
    					ID = 0
 						send = true
    				case "esoiufhwep":
-					fmt.Println("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
    					ID = 1
 						send = true
    				case "adwjpafae":
-					fmt.Println("gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg")
    					ID = 2
 						send = true
    				case "sdlhifsake":
-					fmt.Println("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh")
    					ID = 3
 						send = true
+					default:
+						ID = -1
+						send = false
    				}
 					if send {
-						fmt.Println("ÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆÆ")
 						currentMap[ID].State = def.S_Dead
 
-						sendMsg := def.MakeMapMessage(currentMap, nil)
+						sendMsg := def.MakeMapMessage(currentMap, "Dead elevator")
 						msg_deadElev <- sendMsg
 				}
 			}
