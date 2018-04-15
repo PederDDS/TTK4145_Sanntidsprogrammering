@@ -102,9 +102,9 @@ func FSM(drv_buttons chan IO.ButtonEvent, drv_floors chan int, fsm_chn chan bool
 			FloorArrival(msg_fromFSM, arrivalFloor, doorTimer)
 			idleTimer.Reset(def.IDLE_TIMEOUT_TIME * time.Second)
 
-			motor_direction = ChooseDirection(currentMap)
 
 			currentMap = ordermanager.GetElevMap()
+			motor_direction = ChooseDirection(currentMap)
 
 			//update currentMap
 			if motor_direction != IO.MD_Stop && currentMap[def.LOCAL_ID].State != def.S_Dead {
@@ -329,8 +329,10 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
 	IO.SetFloorIndicator(arrivalFloor)
 
 	//check if there is an order on floor, if so delete orders (also do lights)
-	switch elevator_state {
+	switch currentMap[def.LOCAL_ID].State {
 	case def.S_Idle:
+		fmt.Println("case def.S_Idle in FloorArrival")
+		
 		//if order on floor, delete orders and set door open
 		if IsOrderOnFloor(currentMap, arrivalFloor) {
 			//direction i stop and door is set open
@@ -341,7 +343,6 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
 			IO.SetDoorOpenLamp(true)
 
 			currentMap = DeleteOrdersOnFloor(currentMap, arrivalFloor)
-			fmt.Println("case def.S_Idle in FloorArrival")
 			currentMap[def.LOCAL_ID].Dir = motor_direction
 			currentMap[def.LOCAL_ID].State = elevator_state
 			SendMapMessage(msg_fromFSM, currentMap, nil)
@@ -365,18 +366,19 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
 		SendMapMessage(msg_fromFSM, currentMap, nil)
 
 	case def.S_Moving:
-		if IsOrderOnFloor(currentMap, arrivalFloor) {
+		fmt.Println("case def.S_Moving in FloorArrival")
+
+		if PossibleStop(currentMap) {
 			SetButtonLights(currentMap)
 
 			motor_direction = IO.MD_Stop
+			IO.SetMotorDirection(motor_direction)
 			elevator_state = def.S_DoorOpen
 
-			IO.SetMotorDirection(motor_direction)
 			IO.SetDoorOpenLamp(true)
 			doorTimer.Reset(def.DOOR_TIMEOUT_TIME * time.Second)
 
 			currentMap := DeleteOrdersOnFloor(currentMap, arrivalFloor)
-			fmt.Println("case def.S_Moving in FloorArrival")
 			currentMap[def.LOCAL_ID].Dir = motor_direction
 			currentMap[def.LOCAL_ID].State = elevator_state
 			SendMapMessage(msg_fromFSM, currentMap, nil)
@@ -384,6 +386,8 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
 			<-doorTimer.C
 			DoorTimeout(msg_fromFSM)
 			SetButtonLights(currentMap)
+		} else {
+
 		}
 
 	case def.S_DoorOpen:
