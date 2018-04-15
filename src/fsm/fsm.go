@@ -148,6 +148,7 @@ func FSM(drv_buttons chan IO.ButtonEvent, drv_floors chan int, fsm_chn chan bool
 				fmt.Println("Cab order detected")
 				currentMap, _ = ordermanager.UpdateElevMap(currentMap)
 				SetButtonLights(currentMap)
+				ButtonPushed(msg_fromFSM, msg_button.Floor, int(msg_button.Button), doorTimer, currentMap)
 			}
 
 
@@ -163,6 +164,7 @@ func FSM(drv_buttons chan IO.ButtonEvent, drv_floors chan int, fsm_chn chan bool
 					tempElevAlive++
 				}
 			}
+			fmt.Println("tempElevAlive: ", tempElevAlive)
 
 			currentMap, _ = ordermanager.UpdateElevMap(currentMap)
 
@@ -331,7 +333,7 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
 	switch currentMap[def.LOCAL_ID].State {
 	case def.S_Idle:
 		fmt.Println("case def.S_Idle in FloorArrival")
-		
+
 		//if order on floor, delete orders and set door open
 		if IsOrderOnFloor(currentMap, arrivalFloor) {
 			//direction i stop and door is set open
