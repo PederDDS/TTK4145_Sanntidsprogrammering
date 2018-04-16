@@ -5,17 +5,10 @@ import (
 	"../def"
 	"../fsm"
 	"../ordermanager"
-<<<<<<< HEAD
-	//"net"
 	"../network/bcast"
-	//"../network/localip"
 	"../network/peers"
-	// "flag"
-=======
->>>>>>> Jen
 	"fmt"
 	"time"
-	//"reflect"
 )
 
 func main() {
@@ -28,9 +21,9 @@ func main() {
 
 	var motor_direction IO.MotorDirection
 
-	msg_buttonEvent := make(chan def.MapMessage, 100)
-	msg_fromHWButton := make(chan def.MapMessage, 100)
-	msg_toHW := make(chan def.MapMessage, 100)
+	//msg_buttonEvent := make(chan def.MapMessage, 100)
+	//msg_fromHWButton := make(chan def.MapMessage, 100)
+	//msg_toHW := make(chan def.MapMessage, 100)
 	msg_toNetwork := make(chan ordermanager.ElevatorMap, 100)
 	msg_fromNetwork := make(chan ordermanager.ElevatorMap, 100)
 	msg_fromFSM := make(chan def.MapMessage, 100)
@@ -53,15 +46,15 @@ func main() {
 	go peers.PeerWatch(msg_deadElev)
 
 	transmitTicker := time.NewTicker(100 * time.Millisecond)
-
 	var newMsg ordermanager.ElevatorMap
 	transmitFlag := false
 
 	for {
 		select {
+			/*
 		case msg := <-msg_fromHWButton:
 			fmt.Println("case msg_fromHWButton in main")
-			msg_buttonEvent <- msg
+			msg_buttonEvent <- msg*/
 
 		case msg := <-msg_fromNetwork:
 			fmt.Println("case msg_fromNetwork in main")
@@ -77,9 +70,9 @@ func main() {
 			currentMap, changeMade := ordermanager.UpdateElevMap(recievedMap)
 
 			newMsg = currentMap
-			newMapMsg := def.MakeMapMessage(newMsg, nil)
+			//newMapMsg := def.MakeMapMessage(newMsg, nil)
 			fsm.SetButtonLights(currentMap)
-			msg_toHW <- newMapMsg
+			//msg_toHW <- newMapMsg
 
 			if changeMade {
 				transmitFlag = true

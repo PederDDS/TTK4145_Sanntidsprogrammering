@@ -27,45 +27,13 @@ func Initialize(drv_floors <-chan int, fsm_chn chan<- bool, elevator_map_chn cha
 
 	elevator_state = def.S_Init
 	motor_direction = direction
-<<<<<<< HEAD
-	currentMap[def.LOCAL_ID].Dir = motor_direction
-	sendMessage := def.MakeMapMessage(currentMap, nil)
-	newMap, _ := ordermanager.UpdateElevMap(sendMessage.SendMap.(ordermanager.ElevatorMap))
-=======
->>>>>>> Jen
 	IO.SetMotorDirection(motor_direction)
 
 	currentMap[def.LOCAL_ID].State = elevator_state
 	currentMap[def.LOCAL_ID].Dir = motor_direction
-	currentMap, _ := ordermanager.UpdateElevMap(currentMap)
+	currentMap, _ = ordermanager.UpdateElevMap(currentMap)
 
 	go timer(timeout)
-<<<<<<< HEAD
-	newMap[0].Dir = 0 // fordi newMap is declared and not used...
-
-	select {
-	case floor := <-floor_detection:
-		fmt.Println("Floor detected")
-		motor_direction = IO.MD_Stop
-		sendMessage = def.MakeMapMessage(nil, motor_direction)
-		currentMap[def.LOCAL_ID].Dir = motor_direction
-		sendMessage := def.MakeMapMessage(currentMap, nil)
-
-		newMap, _ := ordermanager.UpdateElevMap(sendMessage.SendMap.(ordermanager.ElevatorMap))
-		newMap[0].Dir = 0 // fordi newMap is declared and not used...
-		IO.SetMotorDirection(motor_direction)
-		elevator_state = def.S_Idle
-		currentMap[def.LOCAL_ID].State = elevator_state
-		currentMap[def.LOCAL_ID].Floor = floor
-		sendMessage = def.MakeMapMessage(currentMap, nil)
-
-		newMap, _ = ordermanager.UpdateElevMap(sendMessage.SendMap.(ordermanager.ElevatorMap))
-		time.Sleep(2 * time.Second)
-		fsm_chn <- true
-	case <-timeout:
-		fmt.Println("Timed out")
-		Initialize(floor_detection, fsm_chn, elevator_map_chn, -motor_direction)
-=======
 
 	select {
 		case <-drv_floors:
@@ -76,14 +44,14 @@ func Initialize(drv_floors <-chan int, fsm_chn chan<- bool, elevator_map_chn cha
 			currentMap[def.LOCAL_ID].Dir = motor_direction
 			currentMap[def.LOCAL_ID].State = elevator_state
 			currentMap, _ := ordermanager.UpdateElevMap(currentMap)
+			currentMap[def.LOCAL_ID].Dir = motor_direction
 
 			time.Sleep(2 * time.Second)
 			fsm_chn <- true
 
 		case <-timeout:
 			fmt.Println("Timed out")
-			Initialize(floor_detection, fsm_chn, elevator_map_chn, -motor_direction)
->>>>>>> Jen
+			Initialize(drv_floors, fsm_chn, elevator_map_chn, -motor_direction)
 	}
 }
 
@@ -102,43 +70,26 @@ func FSM(drv_buttons chan IO.ButtonEvent, drv_floors chan int, fsm_chn chan bool
 
 	for {
 		select {
-		case <-fsm_chn:
+		case <-fsm_chn: //trengs denne casen?
 			currentMap:=ordermanager.GetElevMap()
 			motor_direction = ChooseDirection(currentMap)
+			//mulig IO.SetMotorDirection() her?
 			if motor_direction != IO.MD_Stop {
 				currentMap[def.LOCAL_ID].State = def.S_Moving
-				fmt.Println("case fsm_chn in FSM")
 				elevator_state = def.S_Moving
 			} else if motor_direction == IO.MD_Stop {
 				currentMap[def.LOCAL_ID].State = def.S_Idle
 				elevator_state = def.S_Idle
 			}
+
 			SendMapMessage(msg_fromFSM, currentMap, nil)
 
 		case arrivalFloor := <-drv_floors: //elevator arrives at new floor
 			fmt.Println("case msg from drv_floors FSM")
-			//currentMap := ordermanager.GetElevMap()
 
 			FloorArrival(msg_fromFSM, arrivalFloor, doorTimer)
 			idleTimer.Reset(def.IDLE_TIMEOUT_TIME * time.Second)
 
-/*
-			currentMap = ordermanager.GetElevMap()
-			motor_direction = ChooseDirection(currentMap)
-
-			//update currentMap
-			if motor_direction != IO.MD_Stop && currentMap[def.LOCAL_ID].State != def.S_Dead {
-				currentMap[def.LOCAL_ID].State = def.S_Moving
-				fmt.Println("case arrivalFloor in FSM")
-				elevator_state = def.S_Moving
-			}
-			currentMap[def.LOCAL_ID].Dir = motor_direction
-			currentMap[def.LOCAL_ID].Floor = arrivalFloor
-			currentMap[def.LOCAL_ID].State = elevator_state
-
-			//send map to main
-			SendMapMessage(msg_fromFSM, currentMap, nil)
-*/
 		case msg := <-msg_deadElev: //elevator is dead
 			fmt.Println("case message from msg_deadElev in FSM")
 			localMap := ordermanager.GetElevMap()
@@ -366,7 +317,7 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
 
 			IO.SetDoorOpenLamp(true)
 			doorTimer.Reset(def.DOOR_TIMEOUT_TIME * time.Second)
-			fmt.Println(currentMap)
+
 			currentMap := DeleteOrdersOnFloor(currentMap, arrivalFloor)
 			currentMap[def.LOCAL_ID].State = elevator_state
 			currentMap[def.LOCAL_ID].Dir = motor_direction

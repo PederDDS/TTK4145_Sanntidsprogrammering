@@ -42,10 +42,12 @@ func Init(addr string, numFloors int) {
 		fmt.Println("Driver already initialized!")
 		return
 	}
+
 	_numFloors = numFloors
 	_mtx = sync.Mutex{}
 	var err error
 	_conn, err = net.Dial("tcp", addr)
+
 	if err != nil {
 		panic(err.Error())
 	}
@@ -60,7 +62,6 @@ func Init(addr string, numFloors int) {
 }
 
 func SetMotorDirection(dir MotorDirection) {
-	//fmt.Println("Motor direction: ", dir)
 	_mtx.Lock()
 	defer _mtx.Unlock()
 	_conn.Write([]byte{1, byte(dir), 0, 0})

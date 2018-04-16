@@ -98,13 +98,11 @@ func PeerWatch(msg_deadElev chan<- def.MapMessage)  {
 
 	switch def.LOCAL_ID {
 	case 0:
-		sendID = "ljhvcada"
+		sendID = "sendIDiszero"
 	case 1:
-		sendID = "esoiufhwep"
+		sendID = "sendIDisone"
 	case 2:
-		sendID = "adwjpafae"
-	case 3:
-		sendID = "sdlhifsake"
+		sendID = "sendIDistwo"
 	}
 
 	go Transmitter(def.SEND_ID_PORT, sendID, transmitEnable)
@@ -119,26 +117,24 @@ func PeerWatch(msg_deadElev chan<- def.MapMessage)  {
 		select {
 		case msg := <- peerUpdateCh:
 			currentMap = ordermanager.GetElevMap()
-			 if msg.New != ""{
+			if msg.New != ""{
 				switch msg.New {
-				case "ljhvcada":
+				case "sendIDiszero":
 					ID = 0
 					send = true
-				case "esoiufhwep":
+				case "sendIDisone":
 					ID = 1
 					send = true
-				case "adwjpafae":
+				case "sendIDistwo":
 					ID = 2
 					send = true
-				case "sdlhifsake":
-					ID = 3
-					send = true
+
 				default:
 					ID = -1
 					send = false
 				}
 
-				if send && ID != -1{
+				if send && ID != -1 {
 					currentMap[ID].State = def.S_Idle
 
 					sendMsg := def.MakeMapMessage(currentMap, "New elevator")
@@ -148,18 +144,16 @@ func PeerWatch(msg_deadElev chan<- def.MapMessage)  {
 			} else if len(msg.Lost) > 0 {
 				if msg.Lost[0] != ""{
    				switch msg.Lost[0] {
-   				case "ljhvcada":
+   				case "sendIDiszero":
    					ID = 0
 						send = true
-   				case "esoiufhwep":
+   				case "sendIDisone":
    					ID = 1
 						send = true
-   				case "adwjpafae":
+   				case "sendIDistwo":
    					ID = 2
 						send = true
-   				case "sdlhifsake":
-   					ID = 3
-						send = true
+
 					default:
 						ID = -1
 						send = false
@@ -179,11 +173,13 @@ func PeerWatch(msg_deadElev chan<- def.MapMessage)  {
 
 func PollNetwork(peerUpdateCh chan<- PeerUpdate){
 	poll_chn := make(chan PeerUpdate, 100)
+
 	for port := 20010; port < 20100; port++{
 		if port != def.SEND_ID_PORT{
 			go Receiver(port, poll_chn)
 		}
 	}
+
 	for {
 			select {
 			case msg_fromNet := <- poll_chn:
