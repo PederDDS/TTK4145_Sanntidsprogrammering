@@ -24,35 +24,33 @@ func Initialize(floor_detection <-chan int, fsm_chn chan<- bool, elevator_map_ch
 	currentMap := ordermanager.GetElevMap()
 
 	timeout := make(chan bool, 1)
+
 	elevator_state = def.S_Init
-	currentMap[def.LOCAL_ID].State = elevator_state
 	motor_direction = direction
-	currentMap[def.LOCAL_ID].Dir = motor_direction
-	sendMessage := def.MakeMapMessage(currentMap, nil)
-	newMap, _ := ordermanager.UpdateElevMap(sendMessage.SendMap.(ordermanager.ElevatorMap))
 	IO.SetMotorDirection(motor_direction)
+
+	currentMap[def.LOCAL_ID].State = elevator_state
+	currentMap[def.LOCAL_ID].Dir = motor_direction
+	currentMap, _ = ordermanager.UpdateElevMap(currentMap)
+
 	go timer(timeout)
-	newMap[0].Dir = 0 // fordi newMap is declared and not used...
 
 	select {
 	case floor := <-floor_detection:
-		fmt.Println("Floor detected")
-		motor_direction = IO.MD_Stop
-		sendMessage = def.MakeMapMessage(nil, motor_direction)
-		currentMap[def.LOCAL_ID].Dir = motor_direction
-		sendMessage := def.MakeMapMessage(currentMap, nil)
+		IO.SetFloorIndicator(floor)
 
-		newMap, _ := ordermanager.UpdateElevMap(sendMessage.SendMap.(ordermanager.ElevatorMap))
-		newMap[0].Dir = 0 // fordi newMap is declared and not used...
-		IO.SetMotorDirection(motor_direction)
+		motor_direction = IO.MD_Stop
 		elevator_state = def.S_Idle
+		IO.SetMotorDirection(motor_direction)
+
+		currentMap[def.LOCAL_ID].Dir = motor_direction
 		currentMap[def.LOCAL_ID].State = elevator_state
 		currentMap[def.LOCAL_ID].Floor = floor
-		sendMessage = def.MakeMapMessage(currentMap, nil)
 
-		newMap, _ = ordermanager.UpdateElevMap(sendMessage.SendMap.(ordermanager.ElevatorMap))
+		currentMap, _ = ordermanager.UpdateElevMap(currentMap)
 		time.Sleep(2 * time.Second)
 		fsm_chn <- true
+
 	case <-timeout:
 		fmt.Println("Timed out")
 		Initialize(floor_detection, fsm_chn, elevator_map_chn, -motor_direction)
