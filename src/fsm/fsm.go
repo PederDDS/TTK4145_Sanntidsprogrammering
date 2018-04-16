@@ -176,35 +176,7 @@ func ChooseDirection(currentMap ordermanager.ElevatorMap) IO.MotorDirection {
 	if currentMap[def.LOCAL_ID].Orders[currentFloor][IO.BT_Cab] == ordermanager.ORDER_ACCEPTED {
 		return IO.MD_Stop
 	}
-	/*
-	if currentFloor == def.NUMFLOORS - 1 {
-		fmt.Println("JA, nå traff jeg fjerde etasje")
-		if ordermanager.IsOrderOnFloor(currentMap, currentFloor) {
-			fmt.Println("Her har jeg tenkt å stoppe, for her er det en ordre")
-			return IO.MD_Stop
-		} else if OrderBelow(currentMap) {
-			fmt.Println("Nei, jeg skal snu, for det er en ordre under meg!")
-			return IO.MD_Down
-		} else {
-			fmt.Println("Det er ingen ting som skal skje, så jeg stopper her")
-			return IO.MD_Stop
-		}
-	}
 
-	if currentFloor == 0 {
-		fmt.Println("JA, nå traff jeg første etasje")
-		if ordermanager.IsOrderOnFloor(currentMap, currentFloor) {
-			fmt.Println("Her har jeg tenkt å stoppe, for her er det en ordre")
-			return IO.MD_Stop
-		} else if OrderAbove(currentMap) {
-			fmt.Println("Nei, jeg skal snu, for det er en ordre over meg!")
-			return IO.MD_Up
-		} else {
-			fmt.Println("Det er ingen ting som skal skje, så jeg stopper her")
-			return IO.MD_Stop
-		}
-	}
-	*/
 	switch currentMap[def.LOCAL_ID].Dir {
 	case IO.MD_Up:
 		fmt.Println("Choose Direction, moving up")
@@ -221,7 +193,7 @@ func ChooseDirection(currentMap ordermanager.ElevatorMap) IO.MotorDirection {
 		}
 
 		if currentMap[def.LOCAL_ID].Floor != 0 {
-			if currentMap[def.LOCAL_ID].Orders[currentFloor][IO.BT_HallDown] == ordermanager.ORDER_ACCEPTED && !OrderAbove(currentMap){
+			if currentMap[def.LOCAL_ID].Orders[currentFloor][IO.BT_HallDown] == ordermanager.ORDER_ACCEPTED /* && !OrderBelow(currentMap)*/{
 				fmt.Println("Jeg kom til en etasje og det er ingen ordre over, men jeg stopper her fordi noen skal ned")
 				return IO.MD_Stop
 			}
@@ -230,6 +202,10 @@ func ChooseDirection(currentMap ordermanager.ElevatorMap) IO.MotorDirection {
 				fmt.Println("Jeg snur retning fordi det ikke er noe over meg, nen under")
 				return IO.MD_Down
 			}
+		}
+
+		if currentMap[def.LOCAL_ID].Floor == def.NUMFLOORS -1 {
+			return IO.MD_Stop
 		}
 
 		return IO.MD_Stop
@@ -249,7 +225,7 @@ func ChooseDirection(currentMap ordermanager.ElevatorMap) IO.MotorDirection {
 		}
 
 		if currentMap[def.LOCAL_ID].Floor != def.NUMFLOORS -1 {
-			if currentMap[def.LOCAL_ID].Orders[currentFloor][IO.BT_HallUp] == ordermanager.ORDER_ACCEPTED && !OrderAbove(currentMap){
+			if currentMap[def.LOCAL_ID].Orders[currentFloor][IO.BT_HallUp] == ordermanager.ORDER_ACCEPTED /* && !OrderAbove(currentMap)*/{
 				fmt.Println("Jeg kom til en etasje og det er ingen ordre under, men jeg stopper her fordi noen skal opp")
 				return IO.MD_Stop
 			}
@@ -258,6 +234,10 @@ func ChooseDirection(currentMap ordermanager.ElevatorMap) IO.MotorDirection {
 				fmt.Println("Jeg snur retning fordi det ikke er noe under meg, nen over")
 				return IO.MD_Up
 			}
+		}
+
+		if currentMap[def.LOCAL_ID].Floor == 0 {
+			return IO.MD_Stop
 		}
 
 		return IO.MD_Stop
@@ -306,13 +286,14 @@ func OrderBelow(currentMap ordermanager.ElevatorMap) bool {
 
 func DeleteOrdersOnFloor(currentMap ordermanager.ElevatorMap, currentFloor int) ordermanager.ElevatorMap {
 	//also turns off light for the orders deleted
-	for elev := 0; elev < def.NUMELEVATORS; elev++ {
-		if currentMap[elev].Dir == IO.MD_Up || currentMap[elev].Dir == IO.MD_Stop {
-			currentMap[elev].Orders[currentFloor][IO.BT_HallUp] = ordermanager.NO_ORDER
-		} else if currentMap[elev].Dir == IO.MD_Down || currentMap[elev].Dir == IO.MD_Stop {
-			currentMap[elev].Orders[currentFloor][IO.BT_HallDown] = ordermanager.NO_ORDER
+	if currentMap[def.LOCAL_ID].Dir == IO.MD_Up || currentMap[def.LOCAL_ID].Dir == IO.MD_Stop {
+		currentMap[def.LOCAL_ID].Orders[currentFloor][IO.BT_HallUp] = ordermanager.NO_ORDER
+	} else if currentMap[def.LOCAL_ID].Dir == IO.MD_Down || currentMap[def.LOCAL_ID].Dir == IO.MD_Stop {
+		currentMap[def.LOCAL_ID].Orders[currentFloor][IO.BT_HallDown] = ordermanager.NO_ORDER
+	} else if currentFloor == 0 || currentFloor == def.NUMFLOORS - 1 {
+		currentMap[def.LOCAL_ID].Orders[currentFloor][IO.BT_HallUp] = ordermanager.NO_ORDER
+		currentMap[def.LOCAL_ID].Orders[currentFloor][IO.BT_HallDown] = ordermanager.NO_ORDER
 		}
-	}
 
 	currentMap[def.LOCAL_ID].Orders[currentFloor][IO.BT_Cab] = ordermanager.NO_ORDER
 	ordermanager.SetElevMap(currentMap)
