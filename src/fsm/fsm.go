@@ -71,16 +71,19 @@ func FSM(drv_buttons chan IO.ButtonEvent, drv_floors chan int, fsm_chn chan bool
 		select {
 		case <-fsm_chn:
 			currentMap := ordermanager.GetElevMap()
-			motor_direction = ChooseDirection(currentMap)
-			if motor_direction != IO.MD_Stop {
-				currentMap[def.LOCAL_ID].State = def.S_Moving
-				elevator_state = def.S_Moving
-			} else if motor_direction == IO.MD_Stop {
-				currentMap[def.LOCAL_ID].State = def.S_Idle
-				elevator_state = def.S_Idle
+			if currentMap[def.LOCAL_ID].State == def.S_Idle {
+				motor_direction = ChooseDirection(currentMap)
+				IO.SetMotorDirection(motor_direction)
+				currentMap[def.LOCAL_ID].Dir = motor_direction
+				if motor_direction != IO.MD_Stop {
+					currentMap[def.LOCAL_ID].State = def.S_Moving
+					elevator_state = def.S_Moving
+				} else if motor_direction == IO.MD_Stop {
+					currentMap[def.LOCAL_ID].State = def.S_Idle
+					elevator_state = def.S_Idle
+				}
+				SendMapMessage(msg_fromFSM, currentMap, nil)
 			}
-			SendMapMessage(msg_fromFSM, currentMap, nil)
-
 		case arrivalFloor := <-drv_floors: //elevator arrives at new floor
 
 			FloorArrival(msg_fromFSM, arrivalFloor, doorTimer)
@@ -130,6 +133,7 @@ func FSM(drv_buttons chan IO.ButtonEvent, drv_floors chan int, fsm_chn chan bool
 			}
 
 		default:
+
 		}
 	}
 }

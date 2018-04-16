@@ -120,6 +120,9 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool) {
 						}
 					}
 				}
+				if newMap[elev].Orders[floor][IO.BT_Cab] != currentMap[elev].Orders[floor][IO.BT_Cab] {
+					currentMap[elev].Orders[floor][IO.BT_Cab] = newMap[elev].Orders[floor][IO.BT_Cab]
+				}
 			}
 		}
 

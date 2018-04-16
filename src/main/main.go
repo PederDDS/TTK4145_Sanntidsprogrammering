@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"../IO"
@@ -26,7 +25,7 @@ func main() {
 
 	drv_buttons := make(chan IO.ButtonEvent)
 	drv_floors := make(chan int)
-	fsm_chn := make(chan bool, 1)
+	fsm_chn := make(chan bool, 100)
 	elevator_map_chn := make(chan def.MapMessage)
 
 	go IO.PollButtons(drv_buttons)
@@ -47,15 +46,14 @@ func main() {
 		select {
 
 		case msg := <-msg_fromNetwork:
-			fmt.Println("case msg_fromNetwork in main")
 			newMap, changeMade := ordermanager.UpdateElevMap(msg)
 			if changeMade {
 				newMsg = newMap
+				fsm_chn <- true
 				transmitFlag = true
 			}
 
 		case msg := <-msg_fromFSM:
-			fmt.Println("case msg_fromFSM in main")
 			recievedMap := msg.SendMap.(ordermanager.ElevatorMap)
 			currentMap, changeMade := ordermanager.UpdateElevMap(recievedMap)
 
