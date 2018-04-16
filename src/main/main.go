@@ -64,7 +64,7 @@ func main() {
 
 		case msg := <-msg_fromNetwork:
 			fmt.Println("case msg_fromNetwork in main")
-			newMap, changeMade := ordermanager.UpdateElevMap(msg)
+			newMap, changeMade := ordermanager.UpdateElevMap(msg) //Lage ny funksjon i ordermanager: MapFromNet
 			if changeMade {
 				newMsg = newMap
 				transmitFlag = true
