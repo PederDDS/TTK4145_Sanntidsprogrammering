@@ -6,7 +6,7 @@ Vi har implementert et peer to peer nettverk for et sett med heiser hvor alle ta
 ## Modulinformasjon
 
 ### Nettverk
-
+Har to funksjoner i det store og det hele. Det ene er å hele tiden oppdatere de andre heisene med endringene i det lokale kartet som ligger i ordermanager og oppdatere hverandre om at de lever ved å sende ut sin egen lokale ID over nettet. All kommunikasjon skjer med UDP. Dersom 
 
 
 ### FSM
