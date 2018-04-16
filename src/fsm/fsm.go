@@ -312,12 +312,15 @@ func OrderBelow(currentMap ordermanager.ElevatorMap) bool {
 func DeleteOrdersOnFloor(currentMap ordermanager.ElevatorMap, currentFloor int) ordermanager.ElevatorMap {
 	//also turns off light for the orders deleted
 	for elev := 0; elev < def.NUMELEVATORS; elev++ {
-		currentMap[elev].Orders[currentFloor][IO.BT_HallUp] = ordermanager.NO_ORDER
-		currentMap[elev].Orders[currentFloor][IO.BT_HallDown] = ordermanager.NO_ORDER
+		if currentMap[elev].Dir == IO.MD_Up || currentMap[elev].Dir == IO.MD_Stop {
+			currentMap[elev].Orders[currentFloor][IO.BT_HallUp] = ordermanager.NO_ORDER
+		} else if currentMap[elev].Dir == IO.MD_Down || currentMap[elev].Dir == IO.MD_Stop {
+			currentMap[elev].Orders[currentFloor][IO.BT_HallDown] = ordermanager.NO_ORDER
+		}
 	}
 
 	currentMap[def.LOCAL_ID].Orders[currentFloor][IO.BT_Cab] = ordermanager.NO_ORDER
-
+	ordermanager.SetElevMap(currentMap)
 	SetButtonLights(currentMap)
 	return currentMap
 }
@@ -344,6 +347,7 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
 			IO.SetDoorOpenLamp(true)
 
 			currentMap = DeleteOrdersOnFloor(currentMap, arrivalFloor)
+			fmt.Println("DeleteOrdersOnFloor i case idle i FloorArrival")
 			currentMap[def.LOCAL_ID].Dir = motor_direction
 			currentMap[def.LOCAL_ID].State = elevator_state
 			SendMapMessage(msg_fromFSM, currentMap, nil)
@@ -380,6 +384,7 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
 			doorTimer.Reset(def.DOOR_TIMEOUT_TIME * time.Second)
 
 			currentMap := DeleteOrdersOnFloor(currentMap, arrivalFloor)
+			fmt.Println("DeleteOrdersOnFloor i case moving i FloorArrival")
 			currentMap[def.LOCAL_ID].Dir = motor_direction
 			currentMap[def.LOCAL_ID].State = elevator_state
 			SendMapMessage(msg_fromFSM, currentMap, nil)
@@ -393,7 +398,6 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
 				IO.SetMotorDirection(motor_direction)
 				if motor_direction != IO.MD_Stop {
 					elevator_state = def.S_Moving
-					fmt.Println("case def.S_Moving in floor arrival")
 				} else {
 					elevator_state = def.S_Idle
 				}
@@ -434,6 +438,7 @@ func ButtonPushed(msg_fromFSM chan def.MapMessage, floor int, button int, doorTi
 			motor_direction = IO.MD_Stop
 			IO.SetMotorDirection(motor_direction)
 			currentMap = DeleteOrdersOnFloor(currentMap, floor)
+			fmt.Println("DeleteOrdersOnFloor i case idle i buttonPushed")
 
 			IO.SetDoorOpenLamp(true)
 			doorTimer.Reset(def.DOOR_TIMEOUT_TIME * time.Second)
@@ -464,6 +469,7 @@ func ButtonPushed(msg_fromFSM chan def.MapMessage, floor int, button int, doorTi
 	case def.S_DoorOpen:
 		if currentMap[def.LOCAL_ID].Floor == floor {
 			currentMap = DeleteOrdersOnFloor(currentMap, floor)
+			fmt.Println("DeleteOrdersOnFloor i case doorOpen i buttonPushed")
 			doorTimer.Reset(def.DOOR_TIMEOUT_TIME * time.Second)
 
 			SendMapMessage(msg_fromFSM, currentMap, nil)

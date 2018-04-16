@@ -158,9 +158,10 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool) {
 				if newMap[def.LOCAL_ID].Orders[floor][IO.BT_Cab] == ORDER && currentMap[def.LOCAL_ID].State != def.S_Dead {
 					currentMap[def.LOCAL_ID].Orders[floor][IO.BT_Cab] = ORDER_ACCEPTED
 					allChangesMade = true
-				} else if newMap[def.LOCAL_ID].Orders[floor][IO.BT_Cab] == NO_ORDER && currentMap[def.LOCAL_ID].Orders[floor][IO.BT_Cab] == ORDER_ACCEPTED {
+				} /*else if newMap[def.LOCAL_ID].Orders[floor][IO.BT_Cab] == NO_ORDER && currentMap[def.LOCAL_ID].Orders[floor][IO.BT_Cab] == ORDER_ACCEPTED {
 					currentMap[def.LOCAL_ID].Orders[floor][IO.BT_Cab] = NO_ORDER
-				}
+					fmt.Println("her går ordre fra accepted til no order og det er dumt")
+				}*/
 	}
 
 	if tempElevAlive == def.NUMELEVATORS {
@@ -216,13 +217,15 @@ func IsOrderOnFloor(currentMap ElevatorMap, currentFloor int) bool {
 }
 
 func DistributeOrders(currentMap ElevatorMap) ElevatorMap {
-	for floor := 0; floor < def.NUMFLOORS; floor++ {
-		for button := 0; button < def.NUMBUTTON_TYPES-1; button++ {
-			if IsOrderOnFloor(currentMap, floor) {
-				if IsClosestElevator(currentMap, floor) {
-					currentMap = SetToOrder(currentMap, NO_ORDER, floor, IO.ButtonType(button))
-					currentMap[def.LOCAL_ID].Orders[floor][button] = ORDER_ACCEPTED
-					fmt.Println("Ja, er du gæær'n, det kan se ut som om feilen er her!!!!")
+	for elev := 0; elev < def.NUMELEVATORS; elev++ {
+		for floor := 0; floor < def.NUMFLOORS; floor++ {
+			for button := 0; button < def.NUMBUTTON_TYPES-1; button++ {
+				if currentMap[elev].Orders[floor][button] == ORDER_ACCEPTED {
+					if IsClosestElevator(currentMap, floor) {
+						currentMap = SetToOrder(currentMap, NO_ORDER, floor, IO.ButtonType(button))
+						currentMap[def.LOCAL_ID].Orders[floor][button] = ORDER_ACCEPTED
+						fmt.Println("Ja, er du gæær'n, det kan se ut som om feilen er her!!!!")
+					}
 				}
 			}
 		}
