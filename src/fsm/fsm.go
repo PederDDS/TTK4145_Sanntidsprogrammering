@@ -3,7 +3,7 @@ package fsm
 import (
 	"fmt"
 	"time"
-	//"../network/bcast"
+
 	"../IO"
 	"../def"
 	"../ordermanager"
@@ -82,7 +82,6 @@ func FSM(drv_buttons chan IO.ButtonEvent, drv_floors chan int, fsm_chn chan bool
 			SendMapMessage(msg_fromFSM, currentMap, nil)
 
 		case arrivalFloor := <-drv_floors: //elevator arrives at new floor
-			//currentMap := ordermanager.GetElevMap()
 
 			FloorArrival(msg_fromFSM, arrivalFloor, doorTimer)
 			idleTimer.Reset(def.IDLE_TIMEOUT_TIME * time.Second)
@@ -110,10 +109,6 @@ func FSM(drv_buttons chan IO.ButtonEvent, drv_floors chan int, fsm_chn chan bool
 
 		case msg_button := <-drv_buttons: //detects new buttons pushed
 			currentMap := ordermanager.GetElevMap()
-			/*
-				ButtonPushed(msg_fromFSM, msg_button.Floor, int(msg_button.Button), doorTimer, currentMap)
-				idleTimer.Reset(def.IDLE_TIMEOUT_TIME * time.Second)
-			*/
 
 			if msg_button.Button == IO.BT_Cab {
 
@@ -159,7 +154,7 @@ func ChooseDirection(currentMap ordermanager.ElevatorMap) IO.MotorDirection {
 		}
 
 		if currentMap[def.LOCAL_ID].Floor != 0 {
-			if currentMap[def.LOCAL_ID].Orders[currentFloor][IO.BT_HallDown] == ordermanager.ORDER_ACCEPTED /* && !ordermanager.IsOrderBelow(currentMap)*/ {
+			if currentMap[def.LOCAL_ID].Orders[currentFloor][IO.BT_HallDown] == ordermanager.ORDER_ACCEPTED {
 				return IO.MD_Stop
 			}
 
@@ -225,7 +220,6 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
 
 		//if order on floor, delete orders and set door open
 		if ordermanager.IsOrderOnFloor(currentMap, arrivalFloor) {
-			//direction i stop and door is set open
 			motor_direction = IO.MD_Stop
 			elevator_state = def.S_DoorOpen
 
@@ -287,7 +281,6 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
 
 	case def.S_DoorOpen:
 		doorTimer.Reset(def.DOOR_TIMEOUT_TIME * time.Second)
-		//SetButtonLights(currentMap)
 		<-doorTimer.C
 		DoorTimeout(msg_fromFSM)
 	}
