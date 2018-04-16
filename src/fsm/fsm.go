@@ -324,7 +324,7 @@ func DeleteOrdersOnFloor(currentMap ordermanager.ElevatorMap, currentFloor int) 
 
 	currentMap[def.LOCAL_ID].Orders[currentFloor][IO.BT_Cab] = ordermanager.NO_ORDER
 	ordermanager.SetElevMap(currentMap)
-	SetButtonLights(currentMap)
+	//SetButtonLights(currentMap)
 	return currentMap
 }
 
@@ -379,7 +379,6 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
 		IO.SetMotorDirection(motor_direction)
 
 		if motor_direction == IO.MD_Stop && ordermanager.IsOrderOnFloor(currentMap, arrivalFloor) {
-			SetButtonLights(currentMap)
 
 			IO.SetMotorDirection(motor_direction)
 			elevator_state = def.S_DoorOpen
@@ -395,7 +394,6 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
 
 			<-doorTimer.C
 			DoorTimeout(msg_fromFSM)
-			SetButtonLights(currentMap)
 		} else {
 				if motor_direction != IO.MD_Stop {
 					elevator_state = def.S_Moving
@@ -410,7 +408,7 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
 
 	case def.S_DoorOpen:
 		doorTimer.Reset(def.DOOR_TIMEOUT_TIME * time.Second)
-		SetButtonLights(currentMap)
+		//SetButtonLights(currentMap)
 		<-doorTimer.C
 		DoorTimeout(msg_fromFSM)
 	}
@@ -552,26 +550,26 @@ func PossibleStop(currentMap ordermanager.ElevatorMap) bool { //run at every new
 func SetButtonLights(currentMap ordermanager.ElevatorMap) {
 
 	for floor := 0; floor < def.NUMFLOORS; floor++ {
-	if currentMap[def.LOCAL_ID].Orders[floor][IO.BT_Cab] == ordermanager.ORDER_ACCEPTED {
-		IO.SetButtonLamp(IO.BT_Cab, floor, true)
-	} else if currentMap[def.LOCAL_ID].Orders[floor][IO.BT_Cab] == ordermanager.NO_ORDER {
-		IO.SetButtonLamp(IO.BT_Cab, floor, false)
-	}
-}
+		if currentMap[def.LOCAL_ID].Orders[floor][IO.BT_Cab] == ordermanager.ORDER_ACCEPTED {
+			IO.SetButtonLamp(IO.BT_Cab, floor, true)
+		} else if currentMap[def.LOCAL_ID].Orders[floor][IO.BT_Cab] == ordermanager.NO_ORDER {
+			IO.SetButtonLamp(IO.BT_Cab, floor, false)
+		}
 
-	for elev := 0; elev < def.NUMELEVATORS; elev++ {
-		for floor := 0; floor < def.NUMFLOORS; floor++ {
-			if currentMap[elev].Orders[floor][IO.BT_HallUp] == ordermanager.ORDER_ACCEPTED {
-				IO.SetButtonLamp(IO.BT_HallUp, floor, true)
-			} else if currentMap[elev].Orders[floor][IO.BT_HallUp] == ordermanager.NO_ORDER {
-				IO.SetButtonLamp(IO.BT_HallUp, floor, false)
-			}
+		if currentMap[def.LOCAL_ID].Orders[floor][IO.BT_HallUp] == ordermanager.ORDER_ACCEPTED {
+			fmt.Println("SetButtonLights: Order accepted, og setter lys", floor, "BT_HallUp")
+			IO.SetButtonLamp(IO.BT_HallUp, floor, true)
+		} else if currentMap[def.LOCAL_ID].Orders[floor][IO.BT_HallUp] == ordermanager.NO_ORDER {
+			fmt.Println("SetButtonLights: no order, og sletter lys", floor, "BT_HallUp")
+			IO.SetButtonLamp(IO.BT_HallUp, floor, false)
+		}
 
-			if currentMap[elev].Orders[floor][IO.BT_HallDown] == ordermanager.ORDER_ACCEPTED {
-				IO.SetButtonLamp(IO.BT_HallDown, floor, true)
-			} else if currentMap[elev].Orders[floor][IO.BT_HallDown] == ordermanager.NO_ORDER {
-				IO.SetButtonLamp(IO.BT_HallDown, floor, false)
-			}
+		if currentMap[def.LOCAL_ID].Orders[floor][IO.BT_HallDown] == ordermanager.ORDER_ACCEPTED {
+			fmt.Println("SetButtonLights: Order accepted, og setter lys", floor, "BT_HallDown")
+			IO.SetButtonLamp(IO.BT_HallDown, floor, true)
+		} else if currentMap[def.LOCAL_ID].Orders[floor][IO.BT_HallDown] == ordermanager.NO_ORDER {
+			fmt.Println("SetButtonLights: no order, og sletter lys", floor, "BT_HallDown")
+			IO.SetButtonLamp(IO.BT_HallDown, floor, false)
 		}
 	}
 }
