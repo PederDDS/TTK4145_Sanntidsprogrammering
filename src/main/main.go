@@ -69,16 +69,6 @@ func main() {
 				newMsg = newMap
 				transmitFlag = true
 			}
-			/*
-			msg_toHW <- newMsg
-
-			for _, push := range buttonPushes {
-				fsmEvent := def.NewEvent{def.BUTTON_PUSHED, []int{push[0], push[1]}}
-
-				newMsg = def.MakeMapMessage(currentMap, fsmEvent)
-
-				msg_buttonEvent <- newMsg
-			}*/
 
 		case msg := <-msg_fromFSM:
 			fmt.Println("case msg_fromFSM in main")

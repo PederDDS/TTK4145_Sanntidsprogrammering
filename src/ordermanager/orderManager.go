@@ -137,9 +137,9 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool) {
 									currentMap[elev].Orders[floor][button] = ORDER_ACCEPTED
 							} else if newMap[elev].Orders[floor][button] == NO_ORDER && currentMap[elev].Orders[floor][button] != ORDER {
 									currentMap[elev].Orders[floor][button] = NO_ORDER
-								}
+							}
+					}
 				}
-			}
 			}
 		}
 		//update states
@@ -176,7 +176,6 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool) {
 }
 
 func OverWriteDead(newMap ElevatorMap, deadElevId int) ElevatorMap {
-fmt.Println("OverWriteDead(", deadElevId, ")")
 	newMap[deadElevId].State = def.S_Dead
 	for floor := 0; floor < def.NUMFLOORS; floor++ {
 		newMap[deadElevId].Orders[floor][IO.BT_HallUp] = ORDER_IMPOSSIBLE
