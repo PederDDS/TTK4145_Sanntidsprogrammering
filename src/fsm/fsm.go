@@ -60,14 +60,6 @@ func Initialize(floor_detection <-chan int, fsm_chn chan<- bool, elevator_map_ch
 	}
 }
 
-func Dust(msg_fromFSM chan def.MapMessage) {
-	fmt.Println("func: Dust")
-	currentMap := ordermanager.GetElevMap()
-	currentMap[def.LOCAL_ID].State = def.S_Dead
-	message := def.MakeMapMessage(currentMap, nil)
-	msg_fromFSM <- message
-}
-
 func FSM(drv_buttons chan IO.ButtonEvent, drv_floors chan int, fsm_chn chan bool, elevator_map_chn chan def.MapMessage, direction IO.MotorDirection, msg_fromFSM chan def.MapMessage, msg_deadElev chan def.MapMessage) {
 
 	if initialized == false {
@@ -480,10 +472,6 @@ func ButtonPushed(msg_fromFSM chan def.MapMessage, floor int, button int, doorTi
 				DoorTimeout(msg_fromFSM)
 			}
 		}
-
-
-
-
 	default:
 
 	}
@@ -511,42 +499,6 @@ func DoorTimeout(msg_fromFSM chan def.MapMessage) {
 	}
 }
 
-func PossibleStop(currentMap ordermanager.ElevatorMap) bool { //run at every new floor to check if elev should stop
-	floor := currentMap[def.LOCAL_ID].Floor
-
-	if ordermanager.IsOrderOnFloor(currentMap, floor) {
-		return true
-	}
-
-	switch motor_direction {
-	case IO.MD_Up:
-		if currentMap[def.LOCAL_ID].Orders[floor][IO.BT_Cab] == ordermanager.ORDER_ACCEPTED || currentMap[def.LOCAL_ID].Orders[floor][IO.BT_HallUp] == ordermanager.ORDER_ACCEPTED {
-			return true
-		} else if currentMap[def.LOCAL_ID].Orders[floor][IO.BT_HallDown] == ordermanager.ORDER_ACCEPTED && OrderBelow(currentMap) {
-			return true
-		} else if floor == def.NUMFLOORS {
-			return true
-		} else if OrderBelow(currentMap) {
-			return true
-		}
-
-	case IO.MD_Down:
-		if currentMap[def.LOCAL_ID].Orders[floor][IO.BT_Cab] == ordermanager.ORDER_ACCEPTED || currentMap[def.LOCAL_ID].Orders[floor][IO.BT_HallDown] == ordermanager.ORDER_ACCEPTED {
-			return true
-		} else if currentMap[def.LOCAL_ID].Orders[floor][IO.BT_HallUp] == ordermanager.ORDER_ACCEPTED && OrderAbove(currentMap) {
-			return true
-		} else if floor == 0 {
-			return true
-		} else if OrderAbove(currentMap) {
-			return true
-		}
-
-	default:
-		return false
-	}
-	return false
-}
-
 func SetButtonLights(currentMap ordermanager.ElevatorMap) {
 
 	for floor := 0; floor < def.NUMFLOORS; floor++ {
@@ -557,18 +509,14 @@ func SetButtonLights(currentMap ordermanager.ElevatorMap) {
 		}
 
 		if currentMap[def.LOCAL_ID].Orders[floor][IO.BT_HallUp] == ordermanager.ORDER_ACCEPTED {
-			fmt.Println("SetButtonLights: Order accepted, og setter lys", floor, "BT_HallUp")
 			IO.SetButtonLamp(IO.BT_HallUp, floor, true)
 		} else if currentMap[def.LOCAL_ID].Orders[floor][IO.BT_HallUp] == ordermanager.NO_ORDER {
-			fmt.Println("SetButtonLights: no order, og sletter lys", floor, "BT_HallUp")
 			IO.SetButtonLamp(IO.BT_HallUp, floor, false)
 		}
 
 		if currentMap[def.LOCAL_ID].Orders[floor][IO.BT_HallDown] == ordermanager.ORDER_ACCEPTED {
-			fmt.Println("SetButtonLights: Order accepted, og setter lys", floor, "BT_HallDown")
 			IO.SetButtonLamp(IO.BT_HallDown, floor, true)
 		} else if currentMap[def.LOCAL_ID].Orders[floor][IO.BT_HallDown] == ordermanager.NO_ORDER {
-			fmt.Println("SetButtonLights: no order, og sletter lys", floor, "BT_HallDown")
 			IO.SetButtonLamp(IO.BT_HallDown, floor, false)
 		}
 	}

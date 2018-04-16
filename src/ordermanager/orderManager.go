@@ -224,7 +224,6 @@ func DistributeOrders(currentMap ElevatorMap) ElevatorMap {
 					if IsClosestElevator(currentMap, floor) {
 						currentMap = SetToOrder(currentMap, NO_ORDER, floor, IO.ButtonType(button))
 						currentMap[def.LOCAL_ID].Orders[floor][button] = ORDER_ACCEPTED
-						fmt.Println("Ja, er du gæær'n, det kan se ut som om feilen er her!!!!")
 					}
 				}
 			}
