@@ -5,29 +5,30 @@ import (
 	"../def"
 	"../fsm"
 	"../ordermanager"
+<<<<<<< HEAD
 	//"net"
 	"../network/bcast"
 	//"../network/localip"
 	"../network/peers"
 	// "flag"
+=======
+>>>>>>> Jen
 	"fmt"
-	//"os"
 	"time"
 	//"reflect"
 )
 
 func main() {
+
 	backup := ordermanager.AmIBackup()
 	fmt.Println("backup: ", backup)
 	IO.Init("localhost:15657", def.NUMFLOORS)
-
 	ordermanager.InitElevMap(backup)
 	go ordermanager.SoftwareBackup()
 
 	var motor_direction IO.MotorDirection
 
 	msg_buttonEvent := make(chan def.MapMessage, 100)
-	//msg_fromHWFloor := make(chan def.MapMessage, 100)
 	msg_fromHWButton := make(chan def.MapMessage, 100)
 	msg_toHW := make(chan def.MapMessage, 100)
 	msg_toNetwork := make(chan ordermanager.ElevatorMap, 100)
