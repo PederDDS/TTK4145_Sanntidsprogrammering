@@ -15,7 +15,7 @@ Oppdatering av heiser på nettverket: Hver enkelt heis sender ut sin egen ID i f
 
 
 ### FSM
-Utfører logiske handlinger basert på hendelser i systemet, enten det er at en knapp trykkes, heisen ankommer en ny etasje, en timer er ferdig, eller at man mottar beskjed om at en heis på nettverket er død. Hver gang handlingene for en hendelse er utført, oppdateres det lokale kartet, som så sendes ut på nettverket. 
+Utfører logiske handlinger basert på hendelser i systemet, enten det er at en knapp trykkes, heisen ankommer en ny etasje, en timer er ferdig, eller at man mottar beskjed om at en heis på nettverket er død. Hver gang handlingene for en hendelse er utført, oppdateres det lokale kartet, som så sendes ut på nettverket. Kan både lese fra og skrive til ordermanager, i tillegg til å skrive til IO. 
 
 
 ### Ordermanager
@@ -23,11 +23,11 @@ Inneholder det lokale kartet over alle heisene. Informasjonen som ligger lagret 
 
 
 ### IO
-Tar seg av interaksjon med den fysiske interfacen. Inneholder funksjoner for å sjekke om knapper er trykket og for å sette lys. Dersom en knapp blir trykket eller heisen ankommer en ny etasje, sendes dette over kanal til FSM.
+Tar seg av interaksjon med den fysiske interfacen. Inneholder funksjoner for å sjekke om knapper er trykket og for å sette lys. Dersom en knapp blir trykket eller heisen ankommer en ny etasje, sendes dette over kanal til FSM. Inneholder også en del typedefinisjoner, eks. motorretning og type knapp. Denne informasjonen aksesseres av både main, FSM og ordermanager, men det er kun FSM som setter verdier på interfacen gjennom IO. 
 
 
 ### Def
-Her ligger en del nyttige konstanter for heisen lagret.
+Her ligger en del nyttige konstanter for heisen lagret, i tillegg til meldingsformatet for meldinger som sendes over kanalene. Informasjonen her kan aksesseres av alle de andre modulene.
 
 
 ## Bruk av annen kode
