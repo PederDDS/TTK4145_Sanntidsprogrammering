@@ -2,6 +2,28 @@
 project-gruppa created by GitHub Classroom
 
 
-Modulinformasjon
+## Modulinformasjon
 
--> Peer to peer
+### Nettverksmodul
+
+
+### FSM
+
+
+### Ordermanager
+
+
+### IO
+
+
+## Nettverksdesign
+
+
+## Kostfunksjon
+
+
+## Feilhåndtering
+
+
+
+
