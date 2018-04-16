@@ -6,7 +6,12 @@ Vi har implementert et peer to peer nettverk for et sett med heiser hvor alle ta
 ## Modulinformasjon
 
 ### Nettverk
-Har to funksjoner i det store og det hele. Det ene er å hele tiden oppdatere de andre heisene med endringene i det lokale kartet som ligger i ordermanager og oppdatere hverandre om at de lever ved å sende ut sin egen lokale ID over nettet. All kommunikasjon skjer med UDP. Trenger mer her
+Har to funksjoner i det store og det hele. Det ene er å hele tiden oppdatere de andre heisene med endringene i det lokale kartet som ligger i ordermanager og oppdatere hverandre om at de lever ved å sende ut sin egen lokale ID over nettet. All kommunikasjon skjer med UDP. 
+
+Handling av ordre: Dersom en heis får en ordre, vil den vente til det er registrert hos alle de andre heisene at det er en ordre i den etasjen, og den vil bli foreløpig akseptert. Dersom dette skjer for alle heisene, vil ordren settes til ORDER_ACCEPTED hos den heisen som blir tildelt ordren.
+
+Oppdatering av heiser på nettverket: Hver enkelt heis sender ut sin egen ID i form av en string ved jevne mellomrom. Dette plukkes opp av de andre heisene. Dersom en heis faller ut av nettverket, vil det være umulig for den døde heisen å ta ordre, og de ordrene den hadde vil fordeles blant de resterende heisene. 
+
 
 
 ### FSM

@@ -130,16 +130,13 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool) {
 					if currentMap[elev].Orders[floor][button] != ORDER_IMPOSSIBLE {
 						 if newMap[elev].Orders[floor][button] == ORDER && currentMap[elev].Orders[floor][button] != ORDER_ACCEPTED {
 							 	currentMap[elev].Orders[floor][button] = ORDER
-								/*if tempElevAlive > 1 {
-									currentMap = SetToOrder(currentMap, ORDER_ACCEPTED, floor, IO.ButtonType(button))
-								}*/
 								allChangesMade = true
 							}
 							if newMap[elev].Orders[floor][button] == ORDER_ACCEPTED && currentMap[elev].Orders[floor][button] != NO_ORDER {
 									currentMap[elev].Orders[floor][button] = ORDER_ACCEPTED
 									allChangesMade = true
 							}
-							if newMap[elev].Orders[floor][button] == NO_ORDER && currentMap[elev].Orders[floor][button] != ORDER {
+							if newMap[elev].Orders[floor][button] == NO_ORDER && currentMap[elev].Orders[floor][button] == ORDER {
 									currentMap[elev].Orders[floor][button] = NO_ORDER
 									allChangesMade = true
 							}
@@ -167,31 +164,36 @@ func UpdateElevMap(newMap ElevatorMap) (ElevatorMap, bool) {
 				}
 	}
 
+	var distributeOrders = false
+
 	for elev := 0; elev < def.NUMELEVATORS; elev++ {
 		for floor := 0; floor < def.NUMFLOORS; floor ++ {
 			for button := 0; button < def.NUMBUTTON_TYPES - 1; button++ {
-				if (elev != def.LOCAL_ID && currentMap[elev].Orders[floor][button] == ORDER_ACCEPTED) && currentMap[def.LOCAL_ID].Orders[floor][button] == ORDER {
-					currentMap[def.LOCAL_ID].Orders[floor][button] = ORDER_ACCEPTED
-				}
 				if (elev != def.LOCAL_ID && currentMap[elev].Orders[floor][button] == ORDER) && currentMap[def.LOCAL_ID].Orders[floor][button] == NO_ORDER {
 					currentMap[def.LOCAL_ID].Orders[floor][button] = ORDER
 				}
+				/*if (elev != def.LOCAL_ID && currentMap[elev].Orders[floor][button] == ORDER_ACCEPTED) && currentMap[def.LOCAL_ID].Orders[floor][button] == ORDER {
+					currentMap[def.LOCAL_ID].Orders[floor][button] = ORDER_ACCEPTED
+				}*/
 				ordercounter := 0
 				for elevator := 0; elevator < def.NUMELEVATORS; elevator++ {
 					if currentMap[def.LOCAL_ID].Orders[floor][button] != ORDER_IMPOSSIBLE && (currentMap[elevator].Orders[floor][button] == ORDER || currentMap[elevator].Orders[floor][button] == ORDER_IMPOSSIBLE){
 							ordercounter++
+							fmt.Println("ORDERCOUNTER", ordercounter, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
 						}
 					}
 					if ordercounter == def.NUMELEVATORS {
-						currentMap[def.LOCAL_ID].Orders[floor][button] = ORDER_ACCEPTED
+						fmt.Println("Nå har en jeg sett at alle heisene har en order, så jeg har akseptert den!")
+						//currentMap[def.LOCAL_ID].Orders[floor][button] = ORDER_ACCEPTED
+						distributeOrders = true
 				}
 			}
 		}
 	}
 
-distributeOrders := false
 
-for floor := 0; floor < def.NUMFLOORS; floor++ {
+
+/*for floor := 0; floor < def.NUMFLOORS; floor++ {
 	for button := 0; button < def.NUMBUTTON_TYPES - 1; button++ {
 		tempOrderAcc := 0
 		for elev := 0; elev < def.NUMELEVATORS; elev++ {
@@ -200,13 +202,23 @@ for floor := 0; floor < def.NUMFLOORS; floor++ {
 			}
 		}
 		if tempOrderAcc == def.NUMELEVATORS {
+			fmt.Println("DISTRIBUTEORDERS DISTRIBUTEORDERS DISTRIBUTEORDERS DISTRIBUTEORDERS DISTRIBUTEORDERS DISTRIBUTEORDERS DISTRIBUTEORDERS DISTRIBUTEORDERS ")
 			distributeOrders = true
 		}
 	}
 }
-
+*/
 if distributeOrders {
 	currentMap = DistributeOrders(currentMap)
+	for elev := 0; elev < def.NUMELEVATORS; elev++ {
+		for floor := 0; floor < def.NUMFLOORS; floor++ {
+			for button := 0; button < def.NUMBUTTON_TYPES-1; button++ {
+				if currentMap[elev].Orders[floor][button] == ORDER {
+					currentMap[elev].Orders[floor][button] = NO_ORDER
+				}
+			}
+		}
+	}
 }
 
 	MakeBackup(currentMap)
@@ -260,7 +272,7 @@ func DistributeOrders(currentMap ElevatorMap) ElevatorMap {
 	for elev := 0; elev < def.NUMELEVATORS; elev++ {
 		for floor := 0; floor < def.NUMFLOORS; floor++ {
 			for button := 0; button < def.NUMBUTTON_TYPES-1; button++ {
-				if currentMap[elev].Orders[floor][button] == ORDER_ACCEPTED {
+				if currentMap[elev].Orders[floor][button] == ORDER {
 					if IsClosestElevator(currentMap, floor) {
 						currentMap = SetToOrder(currentMap, NO_ORDER, floor, IO.ButtonType(button))
 						currentMap[def.LOCAL_ID].Orders[floor][button] = ORDER_ACCEPTED
@@ -269,6 +281,7 @@ func DistributeOrders(currentMap ElevatorMap) ElevatorMap {
 			}
 		}
 	}
+
 	return currentMap
 }
 
