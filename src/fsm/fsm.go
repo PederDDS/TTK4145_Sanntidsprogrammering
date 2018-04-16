@@ -32,7 +32,7 @@ func Initialize(floor_detection <-chan int, fsm_chn chan<- bool, elevator_map_ch
 	newMap, _ := ordermanager.UpdateElevMap(sendMessage.SendMap.(ordermanager.ElevatorMap))
 	IO.SetMotorDirection(motor_direction)
 	go timer(timeout)
-	newMap[1].Dir = 0 // fordi newMap is declared and not used...
+	newMap[0].Dir = 0 // fordi newMap is declared and not used...
 
 	select {
 	case floor := <-floor_detection:
@@ -43,7 +43,7 @@ func Initialize(floor_detection <-chan int, fsm_chn chan<- bool, elevator_map_ch
 		sendMessage := def.MakeMapMessage(currentMap, nil)
 
 		newMap, _ := ordermanager.UpdateElevMap(sendMessage.SendMap.(ordermanager.ElevatorMap))
-		newMap[1].Dir = 0 // fordi newMap is declared and not used...
+		newMap[0].Dir = 0 // fordi newMap is declared and not used...
 		IO.SetMotorDirection(motor_direction)
 		elevator_state = def.S_Idle
 		currentMap[def.LOCAL_ID].State = elevator_state
