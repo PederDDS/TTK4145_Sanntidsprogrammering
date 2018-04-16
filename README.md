@@ -32,7 +32,7 @@ Her ligger en del nyttige konstanter for heisen lagret.
 
 
 ## Kode som er lånt/fått
-Systemet vårt bruker den utdelte nettverks- og driverkoden. Det er gjort lagt til litt ekstra snacks i både peers og bcast i nettverksmodulen.
+Systemet vårt bruker den utdelte nettverks- og driverkoden. Det er lagt til litt ekstra snacks i både peers og bcast i nettverksmodulen.
 
 
 
