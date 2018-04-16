@@ -184,6 +184,7 @@ func ChooseDirection(currentMap ordermanager.ElevatorMap) IO.MotorDirection {
 	if currentMap[def.LOCAL_ID].Orders[currentFloor][IO.BT_Cab] == ordermanager.ORDER_ACCEPTED {
 		return IO.MD_Stop
 	}
+	/*
 	if currentFloor == def.NUMFLOORS - 1 {
 		fmt.Println("JA, nå traff jeg fjerde etasje")
 		if ordermanager.IsOrderOnFloor(currentMap, currentFloor) {
@@ -211,57 +212,59 @@ func ChooseDirection(currentMap ordermanager.ElevatorMap) IO.MotorDirection {
 			return IO.MD_Stop
 		}
 	}
-
+	*/
 	switch currentMap[def.LOCAL_ID].Dir {
 	case IO.MD_Up:
-		if currentMap[def.LOCAL_ID].Floor != def.NUMFLOORS {
+		fmt.Println("Choose Direction, moving up")
+		if currentMap[def.LOCAL_ID].Floor != def.NUMFLOORS -1 {
 			if currentMap[def.LOCAL_ID].Orders[currentFloor][IO.BT_HallUp] == ordermanager.ORDER_ACCEPTED {
+				fmt.Println("Jeg kjører opp og det er en ordre i riktig retning, så jeg stopper her")
 				return IO.MD_Stop
 			}
 
-			for floor := currentMap[def.LOCAL_ID].Floor + 1; floor < def.NUMFLOORS; floor++ {
-				if ordermanager.IsOrderOnFloor(currentMap, floor) || ordermanager.IsClosestElevator(currentMap, floor) {
-					return IO.MD_Up
-				}
+			if OrderAbove(currentMap) {
+				fmt.Println("Jeg kom til en etasje og det er en ordre over, så jeg fortsetter")
+				return IO.MD_Up
 			}
 		}
 
-		if currentMap[def.LOCAL_ID].Floor != ordermanager.NO_ORDER {
-			if currentMap[def.LOCAL_ID].Orders[currentFloor][IO.BT_HallDown] == ordermanager.ORDER_ACCEPTED {
+		if currentMap[def.LOCAL_ID].Floor != 0 {
+			if currentMap[def.LOCAL_ID].Orders[currentFloor][IO.BT_HallDown] == ordermanager.ORDER_ACCEPTED && !OrderAbove(currentMap){
+				fmt.Println("Jeg kom til en etasje og det er ingen ordre over, men jeg stopper her fordi noen skal ned")
 				return IO.MD_Stop
 			}
 
-			for floor := currentMap[def.LOCAL_ID].Floor - 1; floor > -1; floor-- {
-				if ordermanager.IsOrderOnFloor(currentMap, floor) || ordermanager.IsClosestElevator(currentMap, floor) {
-					return IO.MD_Down
-				}
+			if OrderBelow(currentMap) {
+				fmt.Println("Jeg snur retning fordi det ikke er noe over meg, nen under")
+				return IO.MD_Down
 			}
 		}
 
 		return IO.MD_Stop
 
 	case IO.MD_Down:
-		if currentMap[def.LOCAL_ID].Floor != ordermanager.NO_ORDER {
+		fmt.Println("Choose Direction, moving down")
+		if currentMap[def.LOCAL_ID].Floor != 0 {
 			if currentMap[def.LOCAL_ID].Orders[currentFloor][IO.BT_HallDown] == ordermanager.ORDER_ACCEPTED {
+				fmt.Println("Jeg kjører ned og det er en ordre i riktig retning, så jeg stopper her")
 				return IO.MD_Stop
 			}
 
-			for floor := currentMap[def.LOCAL_ID].Floor - 1; floor > -1; floor-- {
-				if ordermanager.IsOrderOnFloor(currentMap, floor) || ordermanager.IsClosestElevator(currentMap, floor) {
-					return IO.MD_Down
-				}
+			if OrderBelow(currentMap) {
+				fmt.Println("Jeg kom til en etasje og det er en ordre under, så jeg fortsetter")
+				return IO.MD_Down
 			}
 		}
 
-		if currentMap[def.LOCAL_ID].Floor != def.NUMFLOORS {
-			if currentMap[def.LOCAL_ID].Orders[currentFloor][IO.BT_HallUp] == ordermanager.ORDER_ACCEPTED {
+		if currentMap[def.LOCAL_ID].Floor != def.NUMFLOORS -1 {
+			if currentMap[def.LOCAL_ID].Orders[currentFloor][IO.BT_HallUp] == ordermanager.ORDER_ACCEPTED && !OrderAbove(currentMap){
+				fmt.Println("Jeg kom til en etasje og det er ingen ordre under, men jeg stopper her fordi noen skal opp")
 				return IO.MD_Stop
 			}
 
-			for floor := currentMap[def.LOCAL_ID].Floor + 1; floor < def.NUMFLOORS; floor++ {
-				if ordermanager.IsOrderOnFloor(currentMap, floor) || ordermanager.IsClosestElevator(currentMap, floor) {
-					return IO.MD_Up
-				}
+			if OrderAbove(currentMap) {
+				fmt.Println("Jeg snur retning fordi det ikke er noe under meg, nen over")
+				return IO.MD_Up
 			}
 		}
 
@@ -372,35 +375,34 @@ func FloorArrival(msg_fromFSM chan def.MapMessage, arrivalFloor int, doorTimer *
 
 	case def.S_Moving:
 		fmt.Println("case def.S_Moving in FloorArrival")
+		motor_direction = ChooseDirection(currentMap)
+		IO.SetMotorDirection(motor_direction)
 
-		if ordermanager.IsOrderOnFloor(currentMap, arrivalFloor) {
+		if motor_direction == IO.MD_Stop && ordermanager.IsOrderOnFloor(currentMap, arrivalFloor) {
 			SetButtonLights(currentMap)
 
-			motor_direction = IO.MD_Stop
 			IO.SetMotorDirection(motor_direction)
 			elevator_state = def.S_DoorOpen
 
 			IO.SetDoorOpenLamp(true)
 			doorTimer.Reset(def.DOOR_TIMEOUT_TIME * time.Second)
-
+			fmt.Println(currentMap)
 			currentMap := DeleteOrdersOnFloor(currentMap, arrivalFloor)
 			fmt.Println("DeleteOrdersOnFloor i case moving i FloorArrival")
-			currentMap[def.LOCAL_ID].Dir = motor_direction
 			currentMap[def.LOCAL_ID].State = elevator_state
+			currentMap[def.LOCAL_ID].Dir = motor_direction
 			SendMapMessage(msg_fromFSM, currentMap, nil)
 
 			<-doorTimer.C
 			DoorTimeout(msg_fromFSM)
 			SetButtonLights(currentMap)
 		} else {
-				motor_direction = ChooseDirection(currentMap)
-				currentMap[def.LOCAL_ID].Dir = motor_direction
-				IO.SetMotorDirection(motor_direction)
 				if motor_direction != IO.MD_Stop {
 					elevator_state = def.S_Moving
 				} else {
 					elevator_state = def.S_Idle
 				}
+				currentMap[def.LOCAL_ID].Dir = motor_direction
 				currentMap[def.LOCAL_ID].State = elevator_state
 				SendMapMessage(msg_fromFSM, currentMap, nil)
 
