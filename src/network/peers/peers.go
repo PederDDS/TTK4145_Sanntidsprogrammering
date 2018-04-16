@@ -1,13 +1,14 @@
 package peers
 
 import (
-	"../conn"
 	"fmt"
 	"net"
 	"sort"
 	"time"
-	"../../ordermanager"
+
 	"../../def"
+	"../../ordermanager"
+	"../conn"
 )
 
 type PeerUpdate struct {
@@ -52,7 +53,6 @@ func Receiver(port int, peerUpdateCh chan<- PeerUpdate) {
 
 		id := string(buf[:n])
 
-
 		// Adding new connection
 		p.New = ""
 		if id != "" {
@@ -89,14 +89,16 @@ func Receiver(port int, peerUpdateCh chan<- PeerUpdate) {
 	}
 }
 
-func PeerWatch(msg_deadElev chan<- def.MapMessage)  {
-	transmitEnable 	:= make(chan bool, 100)
-	peerUpdateCh		:= make(chan PeerUpdate, 100)
+func PeerWatch(msg_deadElev chan<- def.MapMessage) {
+	transmitEnable := make(chan bool, 100)
+	peerUpdateCh := make(chan PeerUpdate, 100)
 
 	var sendID string
 	var ID int
 
 	switch def.LOCAL_ID {
+	// To have a more unique ID to send and recieve, we chose to make this switch.
+	// To allow for more elevators, make new cases with unique strings as ID's.
 	case 0:
 		sendID = "sendIDiszero"
 	case 1:
@@ -108,16 +110,15 @@ func PeerWatch(msg_deadElev chan<- def.MapMessage)  {
 	go Transmitter(def.SEND_ID_PORT, sendID, transmitEnable)
 	go PollNetwork(peerUpdateCh)
 
-
 	var currentMap ordermanager.ElevatorMap
 	var send bool
 
 	for {
 		send = false
 		select {
-		case msg := <- peerUpdateCh:
+		case msg := <-peerUpdateCh:
 			currentMap = ordermanager.GetElevMap()
-			if msg.New != ""{
+			if msg.New != "" {
 				switch msg.New {
 				case "sendIDiszero":
 					ID = 0
@@ -139,51 +140,51 @@ func PeerWatch(msg_deadElev chan<- def.MapMessage)  {
 
 					sendMsg := def.MakeMapMessage(currentMap, "New elevator")
 					msg_deadElev <- sendMsg
-			}
+				}
 
 			} else if len(msg.Lost) > 0 {
-				if msg.Lost[0] != ""{
-   				switch msg.Lost[0] {
-   				case "sendIDiszero":
-   					ID = 0
+				if msg.Lost[0] != "" {
+					switch msg.Lost[0] {
+					case "sendIDiszero":
+						ID = 0
 						send = true
-   				case "sendIDisone":
-   					ID = 1
+					case "sendIDisone":
+						ID = 1
 						send = true
-   				case "sendIDistwo":
-   					ID = 2
+					case "sendIDistwo":
+						ID = 2
 						send = true
 
 					default:
 						ID = -1
 						send = false
-   				}
+					}
 					if send {
 						currentMap[ID].State = def.S_Dead
 
 						sendMsg := def.MakeMapMessage(currentMap, "Dead elevator")
 						msg_deadElev <- sendMsg
+					}
 				}
 			}
-		}
 
 		}
 	}
 }
 
-func PollNetwork(peerUpdateCh chan<- PeerUpdate){
+func PollNetwork(peerUpdateCh chan<- PeerUpdate) {
 	poll_chn := make(chan PeerUpdate, 100)
 
-	for port := 20010; port < 20100; port++{
-		if port != def.SEND_ID_PORT{
+	for port := 20010; port < 20100; port++ {
+		if port != def.SEND_ID_PORT {
 			go Receiver(port, poll_chn)
 		}
 	}
 
 	for {
-			select {
-			case msg_fromNet := <- poll_chn:
-				peerUpdateCh <- msg_fromNet
+		select {
+		case msg_fromNet := <-poll_chn:
+			peerUpdateCh <- msg_fromNet
 		}
 	}
 }

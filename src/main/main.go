@@ -1,29 +1,24 @@
 package main
 
 import (
+	"fmt"
+	"time"
+
 	"../IO"
 	"../def"
 	"../fsm"
-	"../ordermanager"
 	"../network/bcast"
 	"../network/peers"
-	"fmt"
-	"time"
+	"../ordermanager"
 )
 
 func main() {
 
-	backup := ordermanager.AmIBackup()
-	fmt.Println("backup: ", backup)
 	IO.Init("localhost:15657", def.NUMFLOORS)
-	ordermanager.InitElevMap(backup)
-	go ordermanager.SoftwareBackup()
+	ordermanager.InitElevMap()
 
 	var motor_direction IO.MotorDirection
 
-	//msg_buttonEvent := make(chan def.MapMessage, 100)
-	//msg_fromHWButton := make(chan def.MapMessage, 100)
-	//msg_toHW := make(chan def.MapMessage, 100)
 	msg_toNetwork := make(chan ordermanager.ElevatorMap, 100)
 	msg_fromNetwork := make(chan ordermanager.ElevatorMap, 100)
 	msg_fromFSM := make(chan def.MapMessage, 100)
@@ -36,7 +31,6 @@ func main() {
 
 	go IO.PollButtons(drv_buttons)
 	go IO.PollFloorSensor(drv_floors)
-
 
 	motor_direction = IO.MD_Down
 
@@ -51,14 +45,10 @@ func main() {
 
 	for {
 		select {
-			/*
-		case msg := <-msg_fromHWButton:
-			fmt.Println("case msg_fromHWButton in main")
-			msg_buttonEvent <- msg*/
 
 		case msg := <-msg_fromNetwork:
 			fmt.Println("case msg_fromNetwork in main")
-			newMap, changeMade := ordermanager.UpdateElevMap(msg) //Lage ny funksjon i ordermanager: MapFromNet
+			newMap, changeMade := ordermanager.UpdateElevMap(msg)
 			if changeMade {
 				newMsg = newMap
 				transmitFlag = true
@@ -70,9 +60,7 @@ func main() {
 			currentMap, changeMade := ordermanager.UpdateElevMap(recievedMap)
 
 			newMsg = currentMap
-			//newMapMsg := def.MakeMapMessage(newMsg, nil)
 			fsm.SetButtonLights(currentMap)
-			//msg_toHW <- newMapMsg
 
 			if changeMade {
 				transmitFlag = true
@@ -80,10 +68,10 @@ func main() {
 
 		case <-transmitTicker.C:
 			if transmitFlag {
-					msg_toNetwork <- newMsg
-					transmitFlag = false
+				msg_toNetwork <- newMsg
+				transmitFlag = false
 			}
 		default:
+		}
 	}
-}
 }
