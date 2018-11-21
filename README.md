@@ -1,5 +1,4 @@
-# project-gruppa
-project-gruppa created by GitHub Classroom
+# TTK4146 - Sanntidsprogrammering
 
 Vi har implementert et peer to peer nettverk for et sett med heiser hvor alle tar avgjørelser basert på samme informasjon og samme grunnlag. Kommunikasjonen mellom heisene baserer seg på UDP-forbindelser, og meldingene som sendes er kart over heisene hvor all nødvendig informasjon for hver heis ligger lagret. 
 
@@ -32,9 +31,4 @@ Her ligger en del nyttige konstanter for heisen lagret, i tillegg til meldingsfo
 
 ## Bruk av annen kode
 Systemet vårt bruker den utdelte nettverks- og driverkoden. Det er lagt til litt ekstra snacks i både peers og bcast i nettverksmodulen.
-
-
-
-
-
-
+Heis-simulatoren som ligger vedlagt er også utdelt kode.
