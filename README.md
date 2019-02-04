@@ -1,4 +1,4 @@
-# TTK4146 - Sanntidsprogrammering
+# TTK4145 - Sanntidsprogrammering
 
 Vi har implementert et peer to peer nettverk for et sett med heiser hvor alle tar avgjørelser basert på samme informasjon og samme grunnlag. Kommunikasjonen mellom heisene baserer seg på UDP-forbindelser, og meldingene som sendes er kart over heisene hvor all nødvendig informasjon for hver heis ligger lagret. 
 
