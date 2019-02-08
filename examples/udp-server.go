@@ -5,7 +5,7 @@ import (
 	"net"
 )
 
-func checkError(err error) bool {
+func checkError(err error){
 	if err != nil {
 		fmt.Println("Error:", err)
 	}
@@ -22,24 +22,23 @@ func listenOnPort(port string) string {
 	length, _, err := ServerConn.ReadFromUDP(buf)
   checkError(err)
 
-  return string(buf[0:n])
+  return string(buf[25:length-1]) //Extracts only the server IP address
 }
 
 func main(){
 	buffer 			:= make([]byte, 1024)
-	LISTEN_PORT := ":30000"
-	LOCAL_IP		:= "10.100.XXX.XXX"
-	COMM_PORT		S:= ":200XX"
+	LISTEN_PORT 		:= ":30000"
+	COMM_PORT		:= ":200XX"
 
 	SERVER_IP := listenOnPort(LISTEN_PORT)
 
 	msg := "Hello from XX"
 
 	localAddr, err := net.ResolveUDPAddr("udp", COMM_PORT)
-  checkError(err)
+  	checkError(err)
 
 	readConn, err := net.ListenUDP("udp", localAddr)
-  checkError(err)
+  	checkError(err)
 
 	sendConn, err := net.Dial("udp", SERVER_IP + COMM_PORT)
 	checkError(err)
