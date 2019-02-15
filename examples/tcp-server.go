@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"time"
 )
@@ -49,7 +48,7 @@ func main() {
 
 	for {
 
-		msg := "This is a message 2018, \x00"
+		msg := "This is a message from XXXX, \x00"
 		fmt.Println("Sending message: ", msg, "\n")
 		client_conn.Write([]byte(msg))
 

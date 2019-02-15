@@ -22,5 +22,5 @@ func main() {
 
 	length, addr, err := ServerConn.ReadFromUDP(buf)
   checkError(err)
-  fmt.Println("Received ",string(buf[0:n]), " from ",addr)
+  fmt.Println("Received ",string(buf[0:length]), " from ",addr)
 }
