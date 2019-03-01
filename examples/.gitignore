@@ -2,3 +2,6 @@ backup.exe
 error_rec.ali
 error_rec.exe
 error_rec.o
+forward_error_rec.ali
+forward_error_rec.exe
+forward_error_rec.o
