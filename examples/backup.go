@@ -19,7 +19,7 @@ func primary(counter int, UDPBroadcast *net.UDPConn) {
   //backup := exec.Command("gnome-terminal", "-x", "sh", "-c", "go run main.go") //https://stackoverflow.com/questions/26416887/golang-opening-second-terminal-console
 
   // På Windows
-  backup := exec.Command("cmd", "main", "go run backup.go")
+  backup := exec.Command("cmd", "/c", "start", "backup.exe")
   err := backup.Run()
   checkError(err)
 
@@ -41,7 +41,7 @@ func backup(listenConn *net.UDPConn) int {
     select {
       case backupCounter = <- listenCh:
         time.Sleep(100*time.Millisecond)
-      case <- time.After(1*time.Second):
+      case <- time.After(3*time.Second):
         return backupCounter
       }
     }
@@ -49,14 +49,15 @@ func backup(listenConn *net.UDPConn) int {
 
 func listen(listenCh chan int, listenConn *net.UDPConn) {
   buf := make([]byte, 64)
-  counter := 0
+  c := 0
+  counter := &c
 
   for {
-    _, _, err := listenConn.ReadFromUDP(buf[:])
+    len, _, err := listenConn.ReadFromUDP(buf[:])
     checkError(err)
-    json.Unmarshal(buf, counter)
-    fmt.Println(counter)
-    listenCh <- counter
+    json.Unmarshal(buf[0:len], counter)
+    fmt.Println(*counter)
+    listenCh <- *counter
     time.Sleep(100*time.Millisecond)
   }
 }

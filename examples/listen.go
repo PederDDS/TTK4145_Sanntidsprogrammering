@@ -11,16 +11,22 @@ func checkError(err error) {
 	}
 }
 
+const(
+  LISTEN_PORT = ":20012"
+  LISTEN_TO_SERVER = ":30000"
+)
 
 func main() {
-	ServerAddr, err := net.ResolveUDPAddr("udp",":30000")
+	listenAddr, err := net.ResolveUDPAddr("udp",LISTEN_PORT)
 	checkError(err)
 
-	ServerConn, err := net.ListenUDP("udp", ServerAddr)
+	listenConn, err := net.ListenUDP("udp", listenAddr)
 	checkError(err)
 	buf := make([]byte, 1024)
 
-	length, addr, err := ServerConn.ReadFromUDP(buf)
+  for{
+	length, addr, err := listenConn.ReadFromUDP(buf)
   checkError(err)
-  fmt.Println("Received ",string(buf[0:length]), " from ",addr)
+  fmt.Println("Received ", string(buf[0:length]), " from ", addr)
+  }
 }
